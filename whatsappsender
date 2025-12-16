@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Sender</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fff;
+            color: #1d1d1f;
+            min-height: 100vh;
+            padding: 60px 20px;
+        }
+
+        .container {
+            max-width: 730px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 21px;
+            color: #86868b;
+            text-align: center;
+            margin-bottom: 48px;
+            font-weight: 400;
+        }
+
+        .alert {
+            background: #fff9e6;
+            border: 1px solid #f1c40f;
+            color: #1d1d1f;
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 32px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .alert strong {
+            font-weight: 600;
+        }
+
+        .section {
+            background: #fbfbfd;
+            border: 1px solid #d2d2d7;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        textarea, input, select {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 17px;
+            background: #fff;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
+            color: #1d1d1f;
+            font-family: inherit;
+            transition: border-color 0.2s ease;
+        }
+
+        textarea {
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 15px;
+            resize: vertical;
+        }
+
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: #0071e3;
+        }
+
+        #addNumbers {
+            min-height: 100px;
+        }
+
+        #numbers {
+            min-height: 160px;
+        }
+
+        #message {
+            min-height: 100px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .helper {
+            font-size: 12px;
+            color: #86868b;
+            margin-top: 6px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: 400;
+        }
+
+        .country-code-input {
+            display: none;
+            margin-top: 12px;
+        }
+
+        .country-code-input.show {
+            display: block;
+        }
+
+        .interval-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .interval-group input {
+            max-width: 100px;
+        }
+
+        .btn {
+            width: 100%;
+            background: #0071e3;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            font-size: 17px;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #0077ed;
+        }
+
+        .btn:disabled {
+            background: #d2d2d7;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f5f5f7;
+            color: #1d1d1f;
+            border: 1px solid #d2d2d7;
+            margin-bottom: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8ed;
+        }
+
+        .number-count {
+            font-size: 14px;
+            color: #0071e3;
+            font-weight: 500;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .progress {
+            display: none;
+            margin-top: 32px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e5e5ea;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #0071e3;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 14px;
+            color: #86868b;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #86868b;
+        }
+
+        .instructions {
+            margin-top: 48px;
+            border-top: 1px solid #d2d2d7;
+            padding-top: 32px;
+        }
+
+        .dropdown-toggle {
+            width: 100%;
+            background: #fbfbfd;
+            border: 1px solid #d2d2d7;
+            padding: 14px 18px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #1d1d1f;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s ease;
+        }
+
+        .dropdown-toggle:hover {
+            background: #f5f5f7;
+        }
+
+        .dropdown-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-icon.open {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .dropdown-content.open {
+            max-height: 800px;
+        }
+
+        .dropdown-inner {
+            padding: 24px 18px;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #424245;
+        }
+
+        .dropdown-inner h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 12px;
+        }
+
+        .dropdown-inner ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .dropdown-inner li {
+            padding-left: 20px;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .dropdown-inner li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #0071e3;
+        }
+
+        .example {
+            background: #f5f5f7;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 13px;
+            margin: 12px 0;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 36px;
+            }
+            .subtitle {
+                font-size: 19px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WhatsApp Sender</h1>
+        <p class="subtitle">Send messages to multiple contacts</p>
+
+        <div class="alert">
+            <strong>Important:</strong> Click "Always allow" when WhatsApp opens for smooth operation
+        </div>
+
+        <!-- Number Management Section -->
+        <div class="section">
+            <div class="section-title">Add Numbers</div>
+            
+            <div class="form-group">
+                <label for="addNumbers">Paste Numbers</label>
+                <textarea id="addNumbers" placeholder="501234567
+507654321
+553344556"></textarea>
+                <div class="helper">Paste numbers row by row (one per line)</div>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="addCountryCode" onchange="toggleCountryCode()">
+                <label for="addCountryCode">Add country code automatically</label>
+            </div>
+
+            <div class="country-code-input" id="countryCodeInput">
+                <label for="countryCode">Country Code</label>
+                <select id="countryCode">
+                    <option value="+966">+966 (Saudi Arabia)</option>
+                    <option value="+971">+971 (UAE)</option>
+                    <option value="+965">+965 (Kuwait)</option>
+                    <option value="+968">+968 (Oman)</option>
+                    <option value="+974">+974 (Qatar)</option>
+                    <option value="+973">+973 (Bahrain)</option>
+                    <option value="+20">+20 (Egypt)</option>
+                    <option value="+962">+962 (Jordan)</option>
+                    <option value="+961">+961 (Lebanon)</option>
+                    <option value="+1">+1 (USA/Canada)</option>
+                    <option value="+44">+44 (UK)</option>
+                    <option value="+91">+91 (India)</option>
+                    <option value="+92">+92 (Pakistan)</option>
+                    <option value="+880">+880 (Bangladesh)</option>
+                    <option value="+60">+60 (Malaysia)</option>
+                    <option value="+63">+63 (Philippines)</option>
+                    <option value="+62">+62 (Indonesia)</option>
+                    <option value="+90">+90 (Turkey)</option>
+                    <option value="+49">+49 (Germany)</option>
+                    <option value="+33">+33 (France)</option>
+                </select>
+            </div>
+
+            <button class="btn btn-secondary" onclick="addNumbersToList()">Add to List</button>
+
+            <div class="form-group">
+                <label for="numbers">Final Numbers List</label>
+                <textarea id="numbers" placeholder="+966501234567
++966501234568
++966501234569"></textarea>
+                <div class="helper">Complete list with country codes - ready to send</div>
+            </div>
+
+            <div class="number-count" id="numberCount">0 numbers in list</div>
+        </div>
+
+        <!-- Message Section -->
+        <div class="section">
+            <div class="section-title">Message</div>
+            
+            <div class="form-group">
+                <label for="message">Message Text</label>
+                <textarea id="message" placeholder="Type your message here..."></textarea>
+                <div class="helper">This message will be sent to all contacts</div>
+            </div>
+
+            <div class="form-group">
+                <label for="interval">Interval Between Messages</label>
+                <div class="interval-group">
+                    <input type="number" id="interval" value="3" min="1" max="30" />
+                    <span style="color: #86868b; font-size: 14px;">seconds</span>
+                </div>
+                <div class="helper">Time delay between each WhatsApp window</div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="startSending()" id="sendBtn">Start Sending</button>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">0 / 0</div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="instructions">
+            <button class="dropdown-toggle" onclick="toggleDropdown()">
+                <span>How to use</span>
+                <span class="dropdown-icon" id="dropdownIcon">▼</span>
+            </button>
+            <div class="dropdown-content" id="dropdownContent">
+                <div class="dropdown-inner">
+                    <h4>Adding Numbers</h4>
+                    <ul>
+                        <li>Paste numbers in the "Add Numbers" field (one per line)</li>
+                        <li>Check "Add country code" if numbers don't have country codes</li>
+                        <li>Select your country code from the dropdown</li>
+                        <li>Click "Add to List" to move numbers to the final list</li>
+                        <li>You can add multiple batches of numbers</li>
+                    </ul>
+
+                    <h4 style="margin-top: 20px;">Number Format Examples</h4>
+                    <p><strong>Without country code:</strong></p>
+                    <div class="example">501234567
+507654321
+553344556</div>
+                    <p><strong>With country code:</strong></p>
+                    <div class="example">+966501234567
++966507654321
++966553344556</div>
+
+                    <h4 style="margin-top: 20px;">Sending Messages</h4>
+                    <ul>
+                        <li>Make sure WhatsApp Desktop is installed and logged in</li>
+                        <li>Enter your message in the message field</li>
+                        <li>Set your preferred interval (default is 3 seconds)</li>
+                        <li>Click "Start Sending" to begin</li>
+                        <li>Click "Always allow" when WhatsApp first opens</li>
+                        <li>Manually click "Send" in WhatsApp for each contact</li>
+                    </ul>
+
+                    <h4 style="margin-top: 20px;">Tips</h4>
+                    <ul>
+                        <li>You can edit the final numbers list directly if needed</li>
+                        <li>Use longer intervals for slower systems</li>
+                        <li>Keep WhatsApp Desktop running during the process</li>
+                        <li>Don't close the browser while sending</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentIndex = 0;
+        let phoneNumbers = [];
+        let message = '';
+        let interval = 3;
+        let isSending = false;
+
+        function toggleCountryCode() {
+            const checkbox = document.getElementById('addCountryCode');
+            const input = document.getElementById('countryCodeInput');
+            if (checkbox.checked) {
+                input.classList.add('show');
+            } else {
+                input.classList.remove('show');
+            }
+        }
+
+        function addNumbersToList() {
+            const numbersToAdd = document.getElementById('addNumbers').value.trim();
+            const addCode = document.getElementById('addCountryCode').checked;
+            const countryCode = document.getElementById('countryCode').value;
+            const finalList = document.getElementById('numbers');
+
+            if (!numbersToAdd) {
+                alert('Please paste some numbers first');
+                return;
+            }
+
+            // Parse numbers
+            let numbers = numbersToAdd.split('\n')
+                .map(num => num.trim())
+                .filter(num => num.length > 0)
+                .map(num => num.replace(/[\s\-\(\)]/g, ''));
+
+            // Add country code if needed
+            if (addCode) {
+                numbers = numbers.map(num => {
+                    // Skip if already has +
+                    if (num.startsWith('+')) return num;
+                    // Remove leading zeros
+                    num = num.replace(/^0+/, '');
+                    return countryCode + num;
+                });
+            }
+
+            // Add to final list
+            const currentList = finalList.value.trim();
+            const newList = currentList ? currentList + '\n' + numbers.join('\n') : numbers.join('\n');
+            finalList.value = newList;
+
+            // Clear add field
+            document.getElementById('addNumbers').value = '';
+            
+            // Update count
+            updateNumberCount();
+
+            // Show success
+            alert(`Added ${numbers.length} numbers to the list!`);
+        }
+
+        function updateNumberCount() {
+            const numbersText = document.getElementById('numbers').value.trim();
+            if (!numbersText) {
+                document.getElementById('numberCount').textContent = '0 numbers in list';
+                return;
+            }
+            const count = numbersText.split('\n').filter(n => n.trim().length > 0).length;
+            document.getElementById('numberCount').textContent = `${count} numbers in list`;
+        }
+
+        // Update count when typing in final list
+        document.getElementById('numbers').addEventListener('input', updateNumberCount);
+
+        function toggleDropdown() {
+            const content = document.getElementById('dropdownContent');
+            const icon = document.getElementById('dropdownIcon');
+            content.classList.toggle('open');
+            icon.classList.toggle('open');
+        }
+
+        function startSending() {
+            const numbersText = document.getElementById('numbers').value.trim();
+            message = document.getElementById('message').value.trim();
+            interval = parseInt(document.getElementById('interval').value) || 3;
+
+            if (!numbersText) {
+                alert('Please add phone numbers to the list first');
+                return;
+            }
+
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+
+            if (interval < 1 || interval > 30) {
+                alert('Interval must be between 1 and 30 seconds');
+                return;
+            }
+
+            // Parse and clean numbers
+            phoneNumbers = numbersText.split('\n')
+                .map(num => num.trim())
+                .filter(num => num.length > 0)
+                .map(num => num.replace(/[\s\-\(\)]/g, ''));
+
+            // Validate numbers
+            const invalidNumbers = phoneNumbers.filter(num => !num.startsWith('+'));
+            if (invalidNumbers.length > 0) {
+                alert('All numbers must include country code starting with +\n\nFound ' + invalidNumbers.length + ' invalid numbers.\nPlease use the "Add country code" option.');
+                return;
+            }
+
+            if (phoneNumbers.length === 0) {
+                alert('No valid phone numbers found');
+                return;
+            }
+
+            // Confirm
+            if (!confirm(`Send to ${phoneNumbers.length} contacts with ${interval}s interval?\n\nRemember to click "Always allow" when prompted.`)) {
+                return;
+            }
+
+            currentIndex = 0;
+            isSending = true;
+            document.getElementById('sendBtn').disabled = true;
+            document.getElementById('progress').style.display = 'block';
+            
+            sendToNext();
+        }
+
+        function sendToNext() {
+            if (currentIndex >= phoneNumbers.length) {
+                document.getElementById('status').textContent = 'All messages processed!';
+                document.getElementById('sendBtn').disabled = false;
+                isSending = false;
+                return;
+            }
+
+            const phone = phoneNumbers[currentIndex];
+            const cleanPhone = phone.startsWith('+') ? phone.substring(1) : phone;
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappURL = `whatsapp://send?phone=${cleanPhone}&text=${encodedMessage}`;
+
+            // Update progress
+            const progress = ((currentIndex + 1) / phoneNumbers.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `${currentIndex + 1} / ${phoneNumbers.length}`;
+
+            // Countdown
+            let seconds = interval;
+            const countdownInterval = setInterval(() => {
+                if (seconds > 0) {
+                    document.getElementById('status').textContent = `Opening contact ${currentIndex + 1} in ${seconds}s...`;
+                    seconds--;
+                } else {
+                    clearInterval(countdownInterval);
+                    document.getElementById('status').textContent = `Opening WhatsApp for contact ${currentIndex + 1}...`;
+                    
+                    // Open WhatsApp
+                    window.location.href = whatsappURL;
+                    
+                    // Next contact
+                    currentIndex++;
+                    setTimeout(() => {
+                        if (isSending) {
+                            sendToNext();
+                        }
+                    }, interval * 1000);
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
