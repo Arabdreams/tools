@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+          <link rel="icon" type="image/jpeg" href="c7.jpg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Comparator</title>
+    <style>
+        /* Apple Minimal Design */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #ffffff;
+            color: #1d1d1f;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid #d2d2d7;
+        }
+
+        .title {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.022em;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 21px;
+            color: #86868b;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.4;
+        }
+
+        .comparison-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-sections {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            background: #f5f5f7;
+            border-radius: 18px;
+            padding: 32px;
+            border: 1px solid #d2d2d7;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #d2d2d7;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .mode-switch {
+            display: flex;
+            gap: 8px;
+            background: white;
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid #d2d2d7;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .mode-btn.active {
+            background: #0066cc;
+            color: white;
+        }
+
+        /* File Upload Area */
+        .file-area {
+            border: 2px dashed #d2d2d7;
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            margin-bottom: 16px;
+        }
+
+        .file-area:hover {
+            border-color: #0066cc;
+        }
+
+        .upload-label {
+            font-size: 17px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            display: block;
+            color: #1d1d1f;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .upload-button:hover {
+            background: #0052a3;
+        }
+
+        .file-name {
+            color: #0066cc;
+            font-weight: 500;
+            margin-top: 12px;
+            font-size: 15px;
+        }
+
+        /* Text Input Area */
+        .text-area {
+            height: 200px;
+            width: 100%;
+            padding: 16px;
+            border: 1px solid #d2d2d7;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'SF Mono', monospace;
+            resize: vertical;
+            background: white;
+        }
+
+        .text-area:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .input-help {
+            font-size: 13px;
+            color: #86868b;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        /* Numbers Preview */
+        .numbers-preview {
+            margin-top: 20px;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #d2d2d7;
+        }
+
+        .preview-title {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            color: #1d1d1f;
+        }
+
+        .preview-list {
+            max-height: 120px;
+            overflow-y: auto;
+            font-size: 14px;
+            font-family: 'SF Mono', monospace;
+            color: #86868b;
+            line-height: 1.6;
+        }
+
+        /* Compare Button */
+        .compare-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .compare-button {
+            background: #1d1d1f;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 48px;
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .compare-button:hover:not(:disabled) {
+            background: #000;
+        }
+
+        .compare-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 32px;
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #d2d2d7;
+            border-top-color: #0066cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+            background: #f5f5f7;
+            border-radius: 18px;
+            padding: 40px;
+            margin-top: 40px;
+        }
+
+        .results-header {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #d2d2d7;
+        }
+
+        .results-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1d1d1f;
+        }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .stat-box {
+            background: #0066cc;
+            color: white;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .stat-value {
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 17px;
+            opacity: 0.9;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #d2d2d7;
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #d2d2d7;
+        }
+
+        .card-title {
+            font-size: 21px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #1d1d1f;
+        }
+
+        .card-subtitle {
+            font-size: 15px;
+            color: #86868b;
+        }
+
+        .numbers-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .number-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f7;
+            font-size: 15px;
+            font-family: 'SF Mono', monospace;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .number-item:last-child {
+            border-bottom: none;
+        }
+
+        .number-index {
+            color: #86868b;
+            font-size: 13px;
+            background: #f5f5f7;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px;
+            color: #86868b;
+            font-size: 15px;
+        }
+
+        .error-message {
+            background: #ff3b30;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: #86868b;
+            font-size: 14px;
+            margin-top: 60px;
+            border-top: 1px solid #d2d2d7;
+        }
+
+        .file-type-info {
+            font-size: 13px;
+            color: #86868b;
+            margin-top: 8px;
+        }
+
+        .input-mode {
+            display: none;
+        }
+
+        .input-mode.active {
+            display: block;
+        }
+    </style>
+    <!-- SheetJS for Excel files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="title">Number Comparator</h1>
+            <p class="subtitle">Compare numbers between two sources. Upload files or paste numbers directly.</p>
+        </header>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="comparison-sections">
+            <!-- Section A -->
+            <div class="section" id="sectionA">
+                <div class="section-header">
+                    <div class="section-title">Set A</div>
+                    <div class="mode-switch">
+                        <button class="mode-btn active" data-section="A" data-mode="upload">Upload</button>
+                        <button class="mode-btn" data-section="A" data-mode="paste">Paste</button>
+                    </div>
+                </div>
+
+                <!-- Upload Mode -->
+                <div class="input-mode active" id="sectionA-upload">
+                    <div class="file-area" id="fileAreaA">
+                        <label class="upload-label">Upload file with numbers</label>
+                        <button class="upload-button" id="uploadButtonA">Choose File</button>
+                        <input type="file" class="file-input" id="fileInputA" accept=".txt,.csv,.xlsx,.xls,.json">
+                        <div class="file-name" id="fileNameA"></div>
+                    </div>
+                    <div class="file-type-info">
+                        Supports: TXT, CSV, Excel (XLSX/XLS), JSON
+                    </div>
+                </div>
+
+                <!-- Paste Mode -->
+                <div class="input-mode" id="sectionA-paste">
+                    <textarea class="text-area" id="textAreaA" placeholder="Enter numbers separated by commas, spaces, or new lines:
+123, 456, 789
+987.65
+1000-2000"></textarea>
+                    <div class="input-help">
+                        Separate numbers by commas, spaces, tabs, or new lines
+                    </div>
+                </div>
+
+                <div class="numbers-preview" id="previewA">
+                    <div class="preview-title">Numbers detected (0)</div>
+                    <div class="preview-list" id="previewListA">No numbers yet</div>
+                </div>
+            </div>
+
+            <!-- Section B -->
+            <div class="section" id="sectionB">
+                <div class="section-header">
+                    <div class="section-title">Set B</div>
+                    <div class="mode-switch">
+                        <button class="mode-btn active" data-section="B" data-mode="upload">Upload</button>
+                        <button class="mode-btn" data-section="B" data-mode="paste">Paste</button>
+                    </div>
+                </div>
+
+                <!-- Upload Mode -->
+                <div class="input-mode active" id="sectionB-upload">
+                    <div class="file-area" id="fileAreaB">
+                        <label class="upload-label">Upload file with numbers</label>
+                        <button class="upload-button" id="uploadButtonB">Choose File</button>
+                        <input type="file" class="file-input" id="fileInputB" accept=".txt,.csv,.xlsx,.xls,.json">
+                        <div class="file-name" id="fileNameB"></div>
+                    </div>
+                    <div class="file-type-info">
+                        Supports: TXT, CSV, Excel (XLSX/XLS), JSON
+                    </div>
+                </div>
+
+                <!-- Paste Mode -->
+                <div class="input-mode" id="sectionB-paste">
+                    <textarea class="text-area" id="textAreaB" placeholder="Enter numbers separated by commas, spaces, or new lines:
+123, 456, 789
+987.65
+1000-2000"></textarea>
+                    <div class="input-help">
+                        Separate numbers by commas, spaces, tabs, or new lines
+                    </div>
+                </div>
+
+                <div class="numbers-preview" id="previewB">
+                    <div class="preview-title">Numbers detected (0)</div>
+                    <div class="preview-list" id="previewListB">No numbers yet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compare Button -->
+        <div class="compare-section">
+            <button class="compare-button" id="compareButton" disabled>Compare Numbers</button>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Comparing numbers...</div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h2 class="results-title">Comparison Results</h2>
+            </div>
+
+            <div class="results-stats" id="resultsStats">
+                <!-- Stats will be populated here -->
+            </div>
+
+            <div class="results-grid">
+                <!-- Common Numbers -->
+                <div class="result-card">
+                    <div class="card-header">
+                        <div class="card-title">In Both Sets</div>
+                        <div class="card-subtitle">Numbers present in both A and B</div>
+                    </div>
+                    <div class="numbers-list" id="commonList">
+                        <div class="empty-state">No common numbers</div>
+                    </div>
+                </div>
+
+                <!-- Only in A -->
+                <div class="result-card">
+                    <div class="card-header">
+                        <div class="card-title">Only in Set A</div>
+                        <div class="card-subtitle">Numbers present only in A</div>
+                    </div>
+                    <div class="numbers-list" id="onlyAList">
+                        <div class="empty-state">No unique numbers in A</div>
+                    </div>
+                </div>
+
+                <!-- Only in B -->
+                <div class="result-card">
+                    <div class="card-header">
+                        <div class="card-title">Only in Set B</div>
+                        <div class="card-subtitle">Numbers present only in B</div>
+                    </div>
+                    <div class="numbers-list" id="onlyBList">
+                        <div class="empty-state">No unique numbers in B</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div>All processing happens in your browser. No data is uploaded anywhere.</div>
+        </footer>
+    </div>
+
+    <script>
+        // State
+        const state = {
+            A: {
+                mode: 'upload',
+                file: null,
+                numbers: [],
+                text: ''
+            },
+            B: {
+                mode: 'upload',
+                file: null,
+                numbers: [],
+                text: ''
+            }
+        };
+
+        // DOM Elements
+        const elements = {
+            errorMessage: document.getElementById('errorMessage'),
+            
+            // Section A
+            uploadButtonA: document.getElementById('uploadButtonA'),
+            fileInputA: document.getElementById('fileInputA'),
+            fileNameA: document.getElementById('fileNameA'),
+            textAreaA: document.getElementById('textAreaA'),
+            previewA: document.getElementById('previewA'),
+            previewListA: document.getElementById('previewListA'),
+            
+            // Section B
+            uploadButtonB: document.getElementById('uploadButtonB'),
+            fileInputB: document.getElementById('fileInputB'),
+            fileNameB: document.getElementById('fileNameB'),
+            textAreaB: document.getElementById('textAreaB'),
+            previewB: document.getElementById('previewB'),
+            previewListB: document.getElementById('previewListB'),
+            
+            // Compare
+            compareButton: document.getElementById('compareButton'),
+            loading: document.getElementById('loading'),
+            
+            // Results
+            resultsSection: document.getElementById('resultsSection'),
+            resultsStats: document.getElementById('resultsStats'),
+            commonList: document.getElementById('commonList'),
+            onlyAList: document.getElementById('onlyAList'),
+            onlyBList: document.getElementById('onlyBList')
+        };
+
+        // Initialize
+        function init() {
+            // Mode switching
+            document.querySelectorAll('.mode-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const section = this.dataset.section;
+                    const mode = this.dataset.mode;
+                    
+                    // Update active buttons
+                    document.querySelectorAll(`[data-section="${section}"]`).forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Update active mode
+                    document.querySelectorAll(`#section${section}-upload, #section${section}-paste`).forEach(div => {
+                        div.classList.remove('active');
+                    });
+                    document.getElementById(`section${section}-${mode}`).classList.add('active');
+                    
+                    // Update state
+                    state[section].mode = mode;
+                    
+                    // Update preview
+                    updatePreview(section);
+                    updateCompareButton();
+                });
+            });
+
+            // File uploads
+            elements.uploadButtonA.addEventListener('click', () => elements.fileInputA.click());
+            elements.fileInputA.addEventListener('change', (e) => handleFileUpload(e, 'A'));
+            
+            elements.uploadButtonB.addEventListener('click', () => elements.fileInputB.click());
+            elements.fileInputB.addEventListener('change', (e) => handleFileUpload(e, 'B'));
+
+            // Text input
+            elements.textAreaA.addEventListener('input', () => handleTextInput('A'));
+            elements.textAreaB.addEventListener('input', () => handleTextInput('B'));
+
+            // Compare button
+            elements.compareButton.addEventListener('click', compareNumbers);
+
+            // Initial update
+            updatePreview('A');
+            updatePreview('B');
+        }
+
+        function handleFileUpload(event, section) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            state[section].file = file;
+            state[section].text = '';
+            
+            const fileName = elements[`fileName${section}`];
+            fileName.textContent = file.name;
+            
+            // Process the file to extract numbers
+            extractNumbersFromFile(file).then(numbers => {
+                state[section].numbers = numbers;
+                updatePreview(section);
+                updateCompareButton();
+            }).catch(error => {
+                showError(`Error reading ${file.name}: ${error.message}`);
+            });
+        }
+
+        function handleTextInput(section) {
+            const text = elements[`textArea${section}`].value;
+            state[section].text = text;
+            
+            // Extract numbers from text
+            const numbers = extractNumbersFromText(text);
+            state[section].numbers = numbers;
+            
+            updatePreview(section);
+            updateCompareButton();
+        }
+
+        async function extractNumbersFromFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                const extension = file.name.toLowerCase().split('.').pop();
+                
+                reader.onload = function(e) {
+                    try {
+                        let text = '';
+                        
+                        switch(extension) {
+                            case 'txt':
+                            case 'csv':
+                                text = e.target.result;
+                                break;
+                                
+                            case 'xlsx':
+                            case 'xls':
+                                // Parse Excel file
+                                const data = new Uint8Array(e.target.result);
+                                const workbook = XLSX.read(data, { type: 'array' });
+                                // Get all cells and extract numbers
+                                text = '';
+                                workbook.SheetNames.forEach(sheetName => {
+                                    const worksheet = workbook.Sheets[sheetName];
+                                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                                    json.forEach(row => {
+                                        text += row.join(' ') + ' ';
+                                    });
+                                });
+                                break;
+                                
+                            case 'json':
+                                const jsonData = JSON.parse(e.target.result);
+                                // Convert JSON to string and extract numbers
+                                text = JSON.stringify(jsonData);
+                                break;
+                                
+                            default:
+                                text = e.target.result;
+                        }
+                        
+                        const numbers = extractNumbersFromText(text);
+                        resolve(numbers);
+                        
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                
+                if (extension === 'xlsx' || extension === 'xls') {
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        function extractNumbersFromText(text) {
+            // Match numbers including decimals, negative numbers, and numbers with commas
+            const numberPattern = /-?\d+(?:,\d+)*(?:\.\d+)?/g;
+            const matches = text.match(numberPattern) || [];
+            
+            // Clean and parse numbers
+            const numbers = matches.map(match => {
+                // Remove commas and convert to number
+                const clean = match.replace(/,/g, '');
+                const num = parseFloat(clean);
+                
+                // Also extract numbers from ranges like "1000-2000"
+                if (match.includes('-') && match.split('-').length === 2 && match.indexOf('-') > 0) {
+                    const [start, end] = match.split('-').map(n => parseFloat(n.replace(/,/g, '')));
+                    if (!isNaN(start) && !isNaN(end)) {
+                        return [start, end];
+                    }
+                }
+                
+                return !isNaN(num) ? num : null;
+            }).filter(n => n !== null);
+            
+            // Flatten arrays and deduplicate
+            const flatNumbers = [];
+            numbers.forEach(n => {
+                if (Array.isArray(n)) {
+                    // Generate range
+                    const [start, end] = n;
+                    for (let i = Math.min(start, end); i <= Math.max(start, end); i++) {
+                        flatNumbers.push(i);
+                    }
+                } else {
+                    flatNumbers.push(n);
+                }
+            });
+            
+            // Remove duplicates
+            return [...new Set(flatNumbers)].sort((a, b) => a - b);
+        }
+
+        function updatePreview(section) {
+            const numbers = state[section].numbers;
+            const preview = elements[`previewList${section}`];
+            const previewContainer = elements[`preview${section}`];
+            const title = previewContainer.querySelector('.preview-title');
+            
+            if (numbers.length > 0) {
+                title.textContent = `Numbers detected (${numbers.length})`;
+                preview.textContent = numbers.slice(0, 10).join(', ');
+                if (numbers.length > 10) {
+                    preview.textContent += `... and ${numbers.length - 10} more`;
+                }
+            } else {
+                title.textContent = `Numbers detected (0)`;
+                preview.textContent = 'No numbers yet';
+            }
+        }
+
+        function updateCompareButton() {
+            const hasNumbersA = state.A.numbers.length > 0;
+            const hasNumbersB = state.B.numbers.length > 0;
+            elements.compareButton.disabled = !(hasNumbersA && hasNumbersB);
+        }
+
+        async function compareNumbers() {
+            if (state.A.numbers.length === 0 || state.B.numbers.length === 0) return;
+            
+            showLoading(true);
+            
+            try {
+                // Find common numbers
+                const setA = new Set(state.A.numbers);
+                const setB = new Set(state.B.numbers);
+                
+                const common = [];
+                const onlyA = [];
+                const onlyB = [];
+                
+                // Check each number in A
+                state.A.numbers.forEach(num => {
+                    if (setB.has(num)) {
+                        common.push(num);
+                    } else {
+                        onlyA.push(num);
+                    }
+                });
+                
+                // Check each number in B
+                state.B.numbers.forEach(num => {
+                    if (!setA.has(num)) {
+                        onlyB.push(num);
+                    }
+                });
+                
+                // Display results
+                displayResults(common, onlyA, onlyB);
+                
+                // Show results
+                elements.resultsSection.style.display = 'block';
+                elements.resultsSection.scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                showError('Error comparing numbers: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayResults(common, onlyA, onlyB) {
+            // Update stats
+            elements.resultsStats.innerHTML = `
+                <div class="stat-box">
+                    <div class="stat-value">${state.A.numbers.length}</div>
+                    <div class="stat-label">Numbers in Set A</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${state.B.numbers.length}</div>
+                    <div class="stat-label">Numbers in Set B</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${common.length}</div>
+                    <div class="stat-label">In Both Sets</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">${onlyA.length + onlyB.length}</div>
+                    <div class="stat-label">Unique to One Set</div>
+                </div>
+            `;
+            
+            // Display common numbers
+            if (common.length > 0) {
+                elements.commonList.innerHTML = '';
+                common.forEach((num, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'number-item';
+                    item.innerHTML = `
+                        <span>${formatNumber(num)}</span>
+                        <span class="number-index">${index + 1}</span>
+                    `;
+                    elements.commonList.appendChild(item);
+                });
+            } else {
+                elements.commonList.innerHTML = '<div class="empty-state">No common numbers found</div>';
+            }
+            
+            // Display numbers only in A
+            if (onlyA.length > 0) {
+                elements.onlyAList.innerHTML = '';
+                onlyA.forEach((num, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'number-item';
+                    item.innerHTML = `
+                        <span>${formatNumber(num)}</span>
+                        <span class="number-index">${index + 1}</span>
+                    `;
+                    elements.onlyAList.appendChild(item);
+                });
+            } else {
+                elements.onlyAList.innerHTML = '<div class="empty-state">All numbers from A are in B</div>';
+            }
+            
+            // Display numbers only in B
+            if (onlyB.length > 0) {
+                elements.onlyBList.innerHTML = '';
+                onlyB.forEach((num, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'number-item';
+                    item.innerHTML = `
+                        <span>${formatNumber(num)}</span>
+                        <span class="number-index">${index + 1}</span>
+                    `;
+                    elements.onlyBList.appendChild(item);
+                });
+            } else {
+                elements.onlyBList.innerHTML = '<div class="empty-state">All numbers from B are in A</div>';
+            }
+        }
+
+        function formatNumber(num) {
+            // Format large numbers with commas
+            if (Number.isInteger(num) && Math.abs(num) >= 1000) {
+                return num.toLocaleString();
+            }
+            // Format decimals to reasonable precision
+            if (!Number.isInteger(num)) {
+                return parseFloat(num.toFixed(6)).toString();
+            }
+            return num.toString();
+        }
+
+        function showError(message) {
+            elements.errorMessage.textContent = message;
+            elements.errorMessage.style.display = 'block';
+            setTimeout(() => {
+                elements.errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            elements.loading.style.display = show ? 'block' : 'none';
+            elements.compareButton.disabled = show;
+            elements.compareButton.textContent = show ? 'Comparing...' : 'Compare Numbers';
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
