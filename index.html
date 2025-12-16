@@ -298,86 +298,6 @@
             color: white;
         }
 
-        .comparison-section {
-            margin-top: 32px;
-            padding-top: 32px;
-            border-top: 1px solid #d2d2d7;
-        }
-
-        .comparison-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .comparison-mode {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .comparison-mode label {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .comparison-mode input[type="radio"] {
-            width: 20px;
-            height: 20px;
-            margin-right: 8px;
-            accent-color: #0071e3;
-        }
-
-        .comparison-file {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-top: 16px;
-        }
-
-        .comparison-file-btn {
-            padding: 10px 20px;
-            background: #f5f5f7;
-            border: 1px solid #d2d2d7;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .comparison-file-name {
-            font-size: 14px;
-            color: #86868b;
-            flex: 1;
-        }
-
-        .remove-comparison {
-            color: #ff3b30;
-            cursor: pointer;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        .remove-comparison:hover {
-            background: rgba(255, 59, 48, 0.1);
-        }
-
-        .match-type {
-            margin-top: 16px;
-        }
-
-        .match-type select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #d2d2d7;
-            border-radius: 8px;
-            font-size: 15px;
-            font-family: inherit;
-            background: white;
-        }
-
         @media (max-width: 768px) {
             .container {
                 padding: 32px 24px;
@@ -389,10 +309,6 @@
 
             .subtitle {
                 font-size: 17px;
-            }
-            
-            .comparison-controls {
-                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -429,6 +345,11 @@
                     <input type="checkbox" id="removeSpaces" checked>
                     <label class="checkbox-label" for="removeSpaces">Remove spaces within numbers</label>
                 </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="enableComparison">
+                    <label class="checkbox-label" for="enableComparison">Enable column comparison</label>
+                </div>
             </div>
 
             <a class="advanced-toggle" id="advancedToggle">Advanced Options ▼</a>
@@ -448,47 +369,44 @@
                     <label>Minimum Digits Required</label>
                     <input type="number" id="minDigits" value="7" min="1">
                 </div>
-            </div>
-        </div>
 
-        <!-- New Comparison Section -->
-        <div class="comparison-section" id="comparisonSection">
-            <label class="option-label">Column Comparison</label>
-            <p style="font-size: 14px; color: #86868b; margin-bottom: 16px;">
-                Compare extracted numbers against a column from an Excel file. Uses strict exact matching.
-            </p>
-            
-            <div class="comparison-mode">
-                <label>
-                    <input type="radio" name="comparisonAction" value="keep" checked>
-                    Keep only numbers in column
-                </label>
-                <label>
-                    <input type="radio" name="comparisonAction" value="remove">
-                    Remove numbers in column
-                </label>
-            </div>
+                <!-- Comparison options (only shown when comparison is enabled) -->
+                <div id="comparisonOptions" style="display: none;">
+                    <div class="input-group">
+                        <label>Excel Column Letter (default F)</label>
+                        <input type="text" id="comparisonColumn" value="F" placeholder="F">
+                    </div>
 
-            <div class="comparison-controls">
-                <div class="input-group">
-                    <label>Excel Column Letter</label>
-                    <input type="text" id="comparisonColumn" value="F" placeholder="e.g., F, A, B, C">
+                    <div class="input-group">
+                        <label>Comparison Mode</label>
+                        <select id="comparisonMode">
+                            <option value="keep">Keep only matching numbers</option>
+                            <option value="remove">Remove matching numbers</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Match Type</label>
+                        <select id="matchType">
+                            <option value="exact">Exact Match (strict)</option>
+                            <option value="startsWith">Starts With (prefix)</option>
+                            <option value="endsWith">Ends With (suffix)</option>
+                            <option value="contains">Contains (anywhere)</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #d2d2d7;">
+                        <label style="font-size: 14px; margin-bottom: 8px; display: block;">Comparison Excel File</label>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <button type="button" id="comparisonFileBtn" style="padding: 10px 20px; background: #fff; border: 1px solid #d2d2d7; border-radius: 8px; cursor: pointer;">
+                                Select File
+                            </button>
+                            <span id="comparisonFileName" style="font-size: 14px; color: #86868b; flex: 1;">No file selected</span>
+                            <span id="removeComparison" style="color: #ff3b30; cursor: pointer; padding: 4px 12px; border-radius: 4px; font-size: 14px; display: none;">✕</span>
+                        </div>
+                        <input type="file" id="comparisonFileInput" accept=".xlsx,.xls" style="display: none;">
+                    </div>
                 </div>
-                
-                <div class="input-group">
-                    <label>Match Type</label>
-                    <select id="matchType">
-                        <option value="exact">Exact Match Only</option>
-                        <option value="contains">Contains (Substring)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="comparison-file">
-                <button class="comparison-file-btn" id="comparisonFileBtn">Select Comparison Excel File</button>
-                <span class="comparison-file-name" id="comparisonFileName">No file selected</span>
-                <span class="remove-comparison" id="removeComparison" style="display: none;">✕</span>
-                <input type="file" id="comparisonFileInput" accept=".xlsx,.xls" style="display: none;">
             </div>
         </div>
 
@@ -523,14 +441,12 @@
         const downloadBtn = document.getElementById('downloadBtn');
         const advancedToggle = document.getElementById('advancedToggle');
         const advancedOptions = document.getElementById('advancedOptions');
-        
-        // Comparison elements
+        const enableComparison = document.getElementById('enableComparison');
+        const comparisonOptions = document.getElementById('comparisonOptions');
         const comparisonFileBtn = document.getElementById('comparisonFileBtn');
         const comparisonFileInput = document.getElementById('comparisonFileInput');
         const comparisonFileName = document.getElementById('comparisonFileName');
         const removeComparison = document.getElementById('removeComparison');
-        const comparisonColumn = document.getElementById('comparisonColumn');
-        const matchType = document.getElementById('matchType');
 
         // Toggle advanced options
         advancedToggle.addEventListener('click', () => {
@@ -538,6 +454,11 @@
             advancedToggle.textContent = advancedOptions.classList.contains('show') 
                 ? 'Advanced Options ▲' 
                 : 'Advanced Options ▼';
+        });
+
+        // Toggle comparison options
+        enableComparison.addEventListener('change', () => {
+            comparisonOptions.style.display = enableComparison.checked ? 'block' : 'none';
         });
 
         // Upload area events
@@ -574,7 +495,7 @@
             if (e.target.files.length > 0) {
                 comparisonFile = e.target.files[0];
                 comparisonFileName.textContent = comparisonFile.name;
-                removeComparison.style.display = 'block';
+                removeComparison.style.display = 'inline';
             }
         });
 
@@ -656,7 +577,7 @@
                 // Convert column letter to index (A=0, B=1, etc.)
                 const columnIndex = column.toUpperCase().charCodeAt(0) - 65;
                 
-                const comparisonNumbers = new Set();
+                const comparisonSet = new Set();
                 
                 // Get all values from the specified column
                 const range = XLSX.utils.decode_range(sheet['!ref']);
@@ -669,17 +590,38 @@
                         const numbers = cellValue.match(/\d+/g);
                         if (numbers) {
                             numbers.forEach(num => {
-                                comparisonNumbers.add(num);
+                                comparisonSet.add(num);
                             });
                         }
                     }
                 }
                 
-                return comparisonNumbers;
+                return comparisonSet;
             } catch (error) {
                 console.error('Error reading comparison file:', error);
                 return new Set();
             }
+        }
+
+        // Check if a number matches comparison numbers based on match type
+        function checkMatch(numberDigits, comparisonSet, matchType) {
+            for (const compNumber of comparisonSet) {
+                switch (matchType) {
+                    case 'exact':
+                        if (numberDigits === compNumber) return true;
+                        break;
+                    case 'startsWith':
+                        if (numberDigits.startsWith(compNumber)) return true;
+                        break;
+                    case 'endsWith':
+                        if (numberDigits.endsWith(compNumber)) return true;
+                        break;
+                    case 'contains':
+                        if (numberDigits.includes(compNumber) || compNumber.includes(numberDigits)) return true;
+                        break;
+                }
+            }
+            return false;
         }
 
         // Process and extract numbers
@@ -702,9 +644,12 @@
             const countryCode = document.getElementById('countryCode').value.trim();
             const numberLength = parseInt(document.getElementById('numberLength').value) || null;
             const minDigits = parseInt(document.getElementById('minDigits').value) || 7;
-            const comparisonAction = document.querySelector('input[name="comparisonAction"]:checked').value;
-            const columnLetter = comparisonColumn.value.toUpperCase().trim() || 'F';
-            const matchTypeValue = matchType.value;
+            
+            // Comparison settings
+            const comparisonEnabled = enableComparison.checked;
+            const comparisonColumn = document.getElementById('comparisonColumn').value.toUpperCase().trim() || 'F';
+            const comparisonMode = document.getElementById('comparisonMode').value;
+            const matchType = document.getElementById('matchType').value;
 
             // Extract all numbers preserving + if present
             let contentToProcess = allContent;
@@ -743,7 +688,7 @@
             if (numberLength) {
                 numbers = numbers.filter(n => {
                     const digits = n.replace(/\D/g, '');
-                    return digits === numberLength;
+                    return digits.length === numberLength;
                 });
             }
 
@@ -774,45 +719,44 @@
                 });
             }
 
-            // COMPARISON LOGIC
+            // COMPARISON LOGIC (if enabled)
             let afterComparison = afterDedup;
             let comparisonCount = 0;
+            let comparisonStats = 0;
+            let comparisonNumbers = new Set();
             
-            if (comparisonFile) {
-                // Read comparison numbers from Excel column
-                const comparisonNumbers = await readComparisonColumn(comparisonFile, columnLetter);
-                comparisonCount = comparisonNumbers.size;
-                
-                // Filter numbers based on comparison
-                numbers = numbers.filter(number => {
-                    // Extract just the digits for comparison
-                    const numberDigits = number.replace(/\D/g, '');
+            if (comparisonEnabled && comparisonFile) {
+                try {
+                    // Read comparison numbers from Excel column
+                    comparisonNumbers = await readComparisonColumn(comparisonFile, comparisonColumn);
+                    comparisonCount = comparisonNumbers.size;
                     
-                    // Check if this number matches any in comparison set
-                    let matches = false;
-                    
-                    if (matchTypeValue === 'exact') {
-                        // EXACT MATCH: only match if digits are exactly the same
-                        matches = comparisonNumbers.has(numberDigits);
-                    } else {
-                        // CONTAINS MATCH: check if any comparison number contains or is contained by this number
-                        for (const compNumber of comparisonNumbers) {
-                            if (numberDigits.includes(compNumber) || compNumber.includes(numberDigits)) {
-                                matches = true;
-                                break;
-                            }
+                    // Filter numbers based on comparison
+                    const beforeComparison = numbers.length;
+                    numbers = numbers.filter(number => {
+                        // Extract just the digits for comparison
+                        const numberDigits = number.replace(/\D/g, '');
+                        
+                        // Check if this number matches any in comparison set
+                        const matches = checkMatch(numberDigits, comparisonNumbers, matchType);
+                        
+                        // Return based on selected mode
+                        if (comparisonMode === 'keep') {
+                            return matches; // Keep only matches
+                        } else {
+                            return !matches; // Remove matches
                         }
-                    }
+                    });
                     
-                    // Return based on selected action
-                    if (comparisonAction === 'keep') {
-                        return matches; // Keep only matches
-                    } else {
-                        return !matches; // Remove matches
-                    }
-                });
-                
-                afterComparison = numbers.length;
+                    afterComparison = numbers.length;
+                    comparisonStats = comparisonMode === 'keep' ? 
+                        afterComparison : // How many were kept
+                        beforeComparison - afterComparison; // How many were removed
+                        
+                } catch (error) {
+                    console.error('Comparison error:', error);
+                    alert('Error reading comparison file. Please check the file and try again.');
+                }
             }
 
             // Sort numbers
@@ -829,21 +773,26 @@
                     <span class="stat-number">${inputCount - afterDedup}</span>
                     <span class="stat-label">Duplicates Removed</span>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-number">${withCountryCode}</span>
-                    <span class="stat-label">Country Code Added</span>
-                </div>
             `;
             
-            if (comparisonFile) {
+            if (countryCode) {
+                statsHTML += `
+                    <div class="stat-card">
+                        <span class="stat-number">${withCountryCode}</span>
+                        <span class="stat-label">Country Code Added</span>
+                    </div>
+                `;
+            }
+            
+            if (comparisonEnabled && comparisonFile && comparisonCount > 0) {
                 statsHTML += `
                     <div class="stat-card">
                         <span class="stat-number">${comparisonCount}</span>
-                        <span class="stat-label">Comparison Numbers</span>
+                        <span class="stat-label">Column ${comparisonColumn} Numbers</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-number">${comparisonAction === 'keep' ? finalCount : afterDedup - afterComparison}</span>
-                        <span class="stat-label">${comparisonAction === 'keep' ? 'Matched' : 'Removed'} by Comparison</span>
+                        <span class="stat-number">${comparisonStats}</span>
+                        <span class="stat-label">${comparisonMode === 'keep' ? 'Matched' : 'Removed'}</span>
                     </div>
                 `;
             }
@@ -866,6 +815,9 @@
 
             count.textContent = `${numbers.length} number${numbers.length !== 1 ? 's' : ''}`;
             results.classList.add('show');
+
+            // Scroll to results
+            results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
             processBtn.disabled = false;
             processBtn.textContent = 'Process File';
