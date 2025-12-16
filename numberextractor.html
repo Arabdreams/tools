@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/jpeg" href="c7.jpg">
+    <title>Number Extractor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 18px;
+            padding: 48px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 21px;
+            color: #86868b;
+            margin-bottom: 40px;
+        }
+
+        .upload-area {
+            border: 2px dashed #d2d2d7;
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 32px;
+        }
+
+        .upload-area:hover {
+            border-color: #0071e3;
+            background: #f5f5f7;
+        }
+
+        .upload-area.dragover {
+            border-color: #0071e3;
+            background: #e8f4fd;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            font-size: 17px;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+        }
+
+        .upload-subtext {
+            font-size: 14px;
+            color: #86868b;
+        }
+
+        .file-list {
+            margin-bottom: 24px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f5f5f7;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .file-name {
+            flex: 1;
+            color: #1d1d1f;
+        }
+
+        .remove-file {
+            color: #ff3b30;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .remove-file:hover {
+            background: rgba(255, 59, 48, 0.1);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .options {
+            margin-bottom: 32px;
+        }
+
+        .option-group {
+            margin-bottom: 24px;
+        }
+
+        .option-label {
+            font-size: 17px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #0071e3;
+        }
+
+        .checkbox-label {
+            font-size: 15px;
+            color: #1d1d1f;
+            cursor: pointer;
+        }
+
+        .advanced-toggle {
+            color: #0071e3;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 16px;
+            display: inline-block;
+        }
+
+        .advanced-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .advanced-options {
+            display: none;
+            margin-top: 24px;
+            padding: 24px;
+            background: #f5f5f7;
+            border-radius: 12px;
+        }
+
+        .advanced-options.show {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #1d1d1f;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        .btn {
+            background: #0071e3;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 17px;
+            border-radius: 980px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #0077ed;
+        }
+
+        .btn:disabled {
+            background: #d2d2d7;
+            cursor: not-allowed;
+        }
+
+        .results {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #f5f5f7;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 600;
+            color: #0071e3;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #86868b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .results-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .count {
+            font-size: 15px;
+            color: #86868b;
+        }
+
+        .results-box {
+            background: #f5f5f7;
+            border-radius: 12px;
+            padding: 24px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .copy-btn {
+            background: transparent;
+            color: #0071e3;
+            border: 2px solid #0071e3;
+            margin-top: 16px;
+            padding: 12px 32px;
+        }
+
+        .copy-btn:hover {
+            background: #0071e3;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 32px 24px;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+
+            .subtitle {
+                font-size: 17px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Number Extractor</h1>
+        <p class="subtitle">Extract and deduplicate numbers from any file</p>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">Drop files here or click to browse</div>
+            <div class="upload-subtext">Supports CSV, TXT, XLSX, DOCX • Multiple files allowed</div>
+            <input type="file" id="fileInput" accept=".csv,.txt,.xlsx,.xls,.docx" multiple>
+        </div>
+
+        <div class="file-list" id="fileList"></div>
+
+        <div class="options">
+            <div class="option-group">
+                <label class="option-label">Processing Options</label>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="phoneNumbers">
+                    <label class="checkbox-label" for="phoneNumbers">Phone numbers only (filter 7-15 digits)</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="removeSpecial" checked>
+                    <label class="checkbox-label" for="removeSpecial">Remove special characters (commas, dots, etc.)</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="removeSpaces" checked>
+                    <label class="checkbox-label" for="removeSpaces">Remove spaces within numbers</label>
+                </div>
+            </div>
+
+            <a class="advanced-toggle" id="advancedToggle">Advanced Options ▼</a>
+
+            <div class="advanced-options" id="advancedOptions">
+                <div class="input-group">
+                    <label>Add Country Code (for numbers without +)</label>
+                    <input type="text" id="countryCode" placeholder="e.g., 1, 44, 91, 966">
+                </div>
+
+                <div class="input-group">
+                    <label>Filter by Number Length (optional)</label>
+                    <input type="number" id="numberLength" placeholder="e.g., 10 for 10-digit numbers only">
+                </div>
+
+                <div class="input-group">
+                    <label>Minimum Digits Required</label>
+                    <input type="number" id="minDigits" value="7" min="1">
+                </div>
+            </div>
+        </div>
+
+        <button class="btn" id="processBtn" disabled>Process File</button>
+
+        <div class="results" id="results">
+            <div class="stats-grid" id="statsGrid"></div>
+            
+            <div class="results-header">
+                <div class="results-title">Final Output</div>
+                <div class="count" id="count">0 numbers</div>
+            </div>
+            <div class="results-box" id="resultsBox"></div>
+            <button class="btn copy-btn" id="copyBtn">Copy All</button>
+            <button class="btn copy-btn" id="downloadBtn">Download as CSV</button>
+        </div>
+    </div>
+
+    <script>
+        let uploadedFiles = [];
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const processBtn = document.getElementById('processBtn');
+        const results = document.getElementById('results');
+        const resultsBox = document.getElementById('resultsBox');
+        const count = document.getElementById('count');
+        const statsGrid = document.getElementById('statsGrid');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const advancedToggle = document.getElementById('advancedToggle');
+        const advancedOptions = document.getElementById('advancedOptions');
+
+        // Toggle advanced options
+        advancedToggle.addEventListener('click', () => {
+            advancedOptions.classList.toggle('show');
+            advancedToggle.textContent = advancedOptions.classList.contains('show') 
+                ? 'Advanced Options ▲' 
+                : 'Advanced Options ▼';
+        });
+
+        // Upload area events
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            files.forEach(file => addFile(file));
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            files.forEach(file => addFile(file));
+            fileInput.value = ''; // Reset input to allow same file again
+        });
+
+        // Add file to list
+        function addFile(file) {
+            if (uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                return; // Duplicate file
+            }
+
+            uploadedFiles.push(file);
+            updateFileList();
+            processBtn.disabled = false;
+        }
+
+        // Update file list display
+        function updateFileList() {
+            if (uploadedFiles.length === 0) {
+                fileList.innerHTML = '';
+                processBtn.disabled = true;
+                return;
+            }
+
+            fileList.innerHTML = uploadedFiles.map((file, index) => `
+                <div class="file-item">
+                    <span class="file-name">📄 ${file.name}</span>
+                    <span class="remove-file" onclick="removeFile(${index})">✕</span>
+                </div>
+            `).join('');
+        }
+
+        // Remove file from list
+        window.removeFile = function(index) {
+            uploadedFiles.splice(index, 1);
+            updateFileList();
+        };
+
+        // Read file content
+        async function readFile(file) {
+            const fileName = file.name.toLowerCase();
+            
+            try {
+                if (fileName.endsWith('.txt')) {
+                    return await file.text();
+                } else if (fileName.endsWith('.csv')) {
+                    const text = await file.text();
+                    const parsed = Papa.parse(text);
+                    return parsed.data.flat().join('\n');
+                } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                    const data = await file.arrayBuffer();
+                    const workbook = XLSX.read(data);
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const csv = XLSX.utils.sheet_to_csv(sheet);
+                    return csv;
+                } else if (fileName.endsWith('.docx')) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({arrayBuffer});
+                    return result.value;
+                }
+            } catch (error) {
+                console.error(`Error reading ${file.name}:`, error);
+                return '';
+            }
+        }
+
+        // Process and extract numbers
+        processBtn.addEventListener('click', async () => {
+            if (uploadedFiles.length === 0) return;
+
+            processBtn.disabled = true;
+            processBtn.textContent = 'Processing...';
+
+            // Read all files
+            let allContent = '';
+            for (const file of uploadedFiles) {
+                const content = await readFile(file);
+                allContent += '\n' + content;
+            }
+
+            const phoneMode = document.getElementById('phoneNumbers').checked;
+            const removeSpecial = document.getElementById('removeSpecial').checked;
+            const removeSpaces = document.getElementById('removeSpaces').checked;
+            const countryCode = document.getElementById('countryCode').value.trim();
+            const numberLength = parseInt(document.getElementById('numberLength').value) || null;
+            const minDigits = parseInt(document.getElementById('minDigits').value) || 7;
+
+            // Extract all numbers preserving + if present
+            let contentToProcess = allContent;
+            
+            if (removeSpecial) {
+                // Remove special chars but keep + and digits
+                contentToProcess = contentToProcess.replace(/[^\d+\s\n\r]/g, ' ');
+            }
+
+            if (removeSpaces) {
+                // Remove spaces between digits
+                contentToProcess = contentToProcess.replace(/(\d)\s+(\d)/g, '$1$2');
+            }
+
+            // Extract all number sequences (with or without +)
+            const lines = contentToProcess.split(/[\n\r]+/);
+            let numbers = [];
+            
+            lines.forEach(line => {
+                // Match numbers with optional + prefix
+                const matches = line.match(/\+?\d+/g);
+                if (matches) {
+                    numbers.push(...matches);
+                }
+            });
+
+            // Clean and filter numbers
+            numbers = numbers
+                .map(n => n.trim())
+                .filter(n => {
+                    const digits = n.replace(/\D/g, '');
+                    return digits.length >= minDigits;
+                });
+
+            // Apply length filter if specified
+            if (numberLength) {
+                numbers = numbers.filter(n => {
+                    const digits = n.replace(/\D/g, '');
+                    return digits === numberLength;
+                });
+            }
+
+            // Phone mode: filter 7-15 digit numbers only
+            if (phoneMode) {
+                numbers = numbers.filter(n => {
+                    const digits = n.replace(/\D/g, '');
+                    return digits.length >= 7 && digits.length <= 15;
+                });
+            }
+
+            // Statistics before processing
+            const inputCount = numbers.length;
+            
+            // Deduplicate
+            numbers = [...new Set(numbers)];
+            const afterDedup = numbers.length;
+
+            // Add country code only to numbers without +
+            let withCountryCode = 0;
+            if (countryCode) {
+                numbers = numbers.map(n => {
+                    if (!n.startsWith('+')) {
+                        withCountryCode++;
+                        return '+' + countryCode + n;
+                    }
+                    return n;
+                });
+            }
+
+            // Sort numbers
+            numbers.sort();
+            const finalCount = numbers.length;
+
+            // Display statistics
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <span class="stat-number">${inputCount}</span>
+                    <span class="stat-label">Input Numbers</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${inputCount - afterDedup}</span>
+                    <span class="stat-label">Duplicates Removed</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${withCountryCode}</span>
+                    <span class="stat-label">Country Code Added</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">${finalCount}</span>
+                    <span class="stat-label">Final Output</span>
+                </div>
+            `;
+
+            // Display results
+            if (numbers.length === 0) {
+                resultsBox.textContent = 'No numbers found matching the criteria.';
+            } else {
+                resultsBox.textContent = numbers.join('\n');
+            }
+
+            count.textContent = `${numbers.length} number${numbers.length !== 1 ? 's' : ''}`;
+            results.classList.add('show');
+
+            processBtn.disabled = false;
+            processBtn.textContent = 'Process File';
+        });
+
+        // Copy results
+        copyBtn.addEventListener('click', () => {
+            const text = resultsBox.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✓ Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                }, 2000);
+            });
+        });
+
+        // Download as CSV
+        downloadBtn.addEventListener('click', () => {
+            const text = resultsBox.textContent;
+            const blob = new Blob([text], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'extracted_numbers.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            const originalText = downloadBtn.textContent;
+            downloadBtn.textContent = '✓ Downloaded!';
+            setTimeout(() => {
+                downloadBtn.textContent = originalText;
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
