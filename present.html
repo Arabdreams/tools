@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentation Overlay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 25px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .url-input {
+            flex: 1;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .url-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 18px;
+        }
+        
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+        
+        .icon-btn.active {
+            background: #007AFF;
+            color: white;
+        }
+        
+        .mode-tag {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            font-size: 13px;
+            color: #8E8E93;
+        }
+        
+        .mode-tag.drawing {
+            background: rgba(255, 68, 0, 0.2);
+            color: #FF4400;
+        }
+        
+        #websiteFrame {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 70px);
+            border: none;
+            z-index: 1;
+        }
+        
+        #drawCanvas {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 70px);
+            z-index: 2;
+            pointer-events: none;
+            cursor: default;
+        }
+        
+        #drawCanvas.drawing-mode {
+            pointer-events: auto;
+            cursor: crosshair;
+        }
+        
+        .floating-indicator {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 13px;
+            color: #8E8E93;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+        
+        .floating-indicator.drawing {
+            background: rgba(0, 0, 0, 0.95);
+            border-color: #FF4400;
+            color: #FF4400;
+        }
+        
+        .floating-indicator .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34C759;
+        }
+        
+        .floating-indicator.drawing .dot {
+            background: #FF4400;
+        }
+        
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="controls">
+        <input type="text" class="url-input" id="urlInput" placeholder="Enter URL..." value="https://apple.com">
+        <button class="icon-btn" id="loadBtn" title="Load Website">
+            <i class="fas fa-arrow-right"></i>
+        </button>
+        <button class="icon-btn" id="drawBtn" title="Toggle Drawing Mode">
+            <i class="fas fa-pen"></i>
+        </button>
+        <button class="icon-btn" id="clearBtn" title="Clear Drawings">
+            <i class="fas fa-eraser"></i>
+        </button>
+        <div class="mode-tag" id="modeTag">Normal Mode</div>
+    </div>
+    
+    <iframe id="websiteFrame"></iframe>
+    <canvas id="drawCanvas"></canvas>
+    
+    <div class="floating-indicator" id="floatingIndicator">
+        <div class="dot"></div>
+        <span>Normal Mode - Double click anywhere to draw</span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('drawCanvas');
+            const ctx = canvas.getContext('2d');
+            const iframe = document.getElementById('websiteFrame');
+            const urlInput = document.getElementById('urlInput');
+            const loadBtn = document.getElementById('loadBtn');
+            const drawBtn = document.getElementById('drawBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const modeTag = document.getElementById('modeTag');
+            const floatingIndicator = document.getElementById('floatingIndicator');
+            
+            let isDrawingMode = false;
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+            let clickTimer = null;
+            let clickCount = 0;
+            
+            const colors = ['#FF3B30', '#007AFF', '#34C759', '#FF9500', '#AF52DE'];
+            let currentColor = colors[1]; // Blue as default
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight - 70;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Set drawing style
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            function toggleDrawingMode() {
+                isDrawingMode = !isDrawingMode;
+                
+                if (isDrawingMode) {
+                    canvas.classList.add('drawing-mode');
+                    modeTag.textContent = 'Drawing Mode';
+                    modeTag.classList.add('drawing');
+                    drawBtn.classList.add('active');
+                    floatingIndicator.textContent = 'Drawing Mode - Double click to exit';
+                    floatingIndicator.classList.add('drawing');
+                    
+                    // Random color for each drawing session
+                    currentColor = colors[Math.floor(Math.random() * colors.length)];
+                    ctx.strokeStyle = currentColor;
+                } else {
+                    canvas.classList.remove('drawing-mode');
+                    modeTag.textContent = 'Normal Mode';
+                    modeTag.classList.remove('drawing');
+                    drawBtn.classList.remove('active');
+                    floatingIndicator.textContent = 'Normal Mode - Double click anywhere to draw';
+                    floatingIndicator.classList.remove('drawing');
+                }
+                
+                // Clear click counter when mode changes
+                clickCount = 0;
+                clearTimeout(clickTimer);
+            }
+            
+            // Double click detection for canvas
+            canvas.addEventListener('click', function(e) {
+                clickCount++;
+                
+                if (clickCount === 1) {
+                    clickTimer = setTimeout(() => {
+                        clickCount = 0;
+                    }, 300);
+                } else if (clickCount === 2) {
+                    clearTimeout(clickTimer);
+                    toggleDrawingMode();
+                    clickCount = 0;
+                    
+                    // If exiting drawing mode, clear drawings
+                    if (!isDrawingMode) {
+                        clearDrawings();
+                    }
+                }
+            });
+            
+            // Start drawing
+            canvas.addEventListener('mousedown', function(e) {
+                if (!isDrawingMode) return;
+                
+                isDrawing = true;
+                lastX = e.clientX;
+                lastY = e.clientY - 70; // Adjust for controls height
+            });
+            
+            // Draw
+            canvas.addEventListener('mousemove', function(e) {
+                if (!isDrawing || !isDrawingMode) return;
+                
+                const x = e.clientX;
+                const y = e.clientY - 70;
+                
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                lastX = x;
+                lastY = y;
+            });
+            
+            // Stop drawing
+            canvas.addEventListener('mouseup', function() {
+                isDrawing = false;
+            });
+            
+            canvas.addEventListener('mouseleave', function() {
+                isDrawing = false;
+            });
+            
+            // Touch support for remote touch devices
+            canvas.addEventListener('touchstart', function(e) {
+                if (!isDrawingMode) return;
+                
+                e.preventDefault();
+                isDrawing = true;
+                const touch = e.touches[0];
+                lastX = touch.clientX;
+                lastY = touch.clientY - 70;
+            });
+            
+            canvas.addEventListener('touchmove', function(e) {
+                if (!isDrawing || !isDrawingMode) return;
+                
+                e.preventDefault();
+                const touch = e.touches[0];
+                const x = touch.clientX;
+                const y = touch.clientY - 70;
+                
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                lastX = x;
+                lastY = y;
+            });
+            
+            canvas.addEventListener('touchend', function() {
+                isDrawing = false;
+            });
+            
+            // Load URL function
+            function loadUrl() {
+                let url = urlInput.value.trim();
+                
+                if (!url) return;
+                
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+                
+                try {
+                    iframe.src = url;
+                } catch (error) {
+                    console.error('Error loading URL:', error);
+                    modeTag.textContent = 'Error Loading';
+                    setTimeout(() => {
+                        modeTag.textContent = isDrawingMode ? 'Drawing Mode' : 'Normal Mode';
+                    }, 2000);
+                }
+            }
+            
+            loadBtn.addEventListener('click', loadUrl);
+            
+            urlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadUrl();
+                }
+            });
+            
+            // Toggle drawing mode with button
+            drawBtn.addEventListener('click', function() {
+                toggleDrawingMode();
+            });
+            
+            // Clear drawings
+            function clearDrawings() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            clearBtn.addEventListener('click', function() {
+                clearDrawings();
+            });
+            
+            // Initial load
+            loadUrl();
+            
+            // Add smooth interaction for iframe when not in drawing mode
+            iframe.style.pointerEvents = 'auto';
+            
+            // Update iframe pointer events based on drawing mode
+            const observer = new MutationObserver(function() {
+                iframe.style.pointerEvents = isDrawingMode ? 'none' : 'auto';
+            });
+            
+            observer.observe(canvas, { attributes: true, attributeFilter: ['class'] });
+            
+            // Auto-hide floating indicator after 5 seconds
+            setTimeout(() => {
+                floatingIndicator.style.opacity = '0.6';
+                floatingIndicator.style.transform = 'scale(0.98)';
+                
+                floatingIndicator.addEventListener('mouseenter', () => {
+                    floatingIndicator.style.opacity = '1';
+                    floatingIndicator.style.transform = 'scale(1)';
+                });
+                
+                floatingIndicator.addEventListener('mouseleave', () => {
+                    floatingIndicator.style.opacity = '0.6';
+                    floatingIndicator.style.transform = 'scale(0.98)';
+                });
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
