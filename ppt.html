@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code7 Strategic Plan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+        }
+
+        body {
+            background-color: #000;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Full-screen slides */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 80px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+            background-color: #fff;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Navigation controls */
+        .controls {
+            position: fixed;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .nav-btn.purple {
+            background: rgba(168, 85, 247, 0.8);
+            border-color: rgba(168, 85, 247, 0.5);
+        }
+
+        .nav-btn.purple:hover {
+            background: rgba(168, 85, 247, 0.95);
+        }
+
+        /* Slide indicators */
+        .indicators {
+            position: fixed;
+            bottom: 100px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .indicator.active {
+            background: #a855f7;
+            transform: scale(1.3);
+        }
+
+        /* Slide content styles */
+        .slide-title {
+            font-size: 64px;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.1;
+            margin-bottom: 40px;
+            letter-spacing: -2px;
+        }
+
+        .slide-title span {
+            color: #a855f7;
+        }
+
+        .slide-subtitle {
+            font-size: 20px;
+            color: #86868b;
+            text-align: center;
+            margin-bottom: 60px;
+            font-weight: 400;
+            max-width: 600px;
+        }
+
+        /* Special slide: 3 parts of Code7, 4 parts of Code7 Main */
+        .parts-container {
+            display: flex;
+            gap: 60px;
+            margin-top: 40px;
+            max-width: 1200px;
+        }
+
+        .part-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .part-box {
+            background: #f5f5f7;
+            border-radius: 20px;
+            padding: 40px;
+            position: relative;
+            border: 1px solid #e5e5e7;
+            transition: transform 0.3s ease;
+        }
+
+        .part-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .part-number {
+            position: absolute;
+            top: -20px;
+            left: 40px;
+            background: #a855f7;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .part-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+        }
+
+        .part-description {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #515154;
+        }
+
+        .section-title {
+            font-size: 36px;
+            font-weight: 600;
+            margin-bottom: 60px;
+            text-align: center;
+            color: #1d1d1f;
+        }
+
+        /* Content layouts for different slides */
+        .content-block {
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .bullet-list {
+            list-style: none;
+            text-align: left;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .bullet-list li {
+            margin-bottom: 20px;
+            padding-left: 30px;
+            position: relative;
+            font-size: 18px;
+            line-height: 1.6;
+            color: #515154;
+        }
+
+        .bullet-list li:before {
+            content: "•";
+            color: #a855f7;
+            font-size: 24px;
+            position: absolute;
+            left: 0;
+            top: -2px;
+        }
+
+        .highlight {
+            background: rgba(168, 85, 247, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        /* Timeline slide */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            max-width: 800px;
+            margin-top: 40px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 30px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .timeline-date {
+            font-size: 18px;
+            font-weight: 600;
+            color: #a855f7;
+            min-width: 150px;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-content h4 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1d1d1f;
+        }
+
+        .timeline-content p {
+            color: #515154;
+            line-height: 1.6;
+        }
+
+        /* Table slide */
+        .execution-table {
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 40px;
+            border-collapse: collapse;
+        }
+
+        .execution-table th {
+            background: #f5f5f7;
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+            color: #1d1d1f;
+            border-bottom: 1px solid #e5e5e7;
+        }
+
+        .execution-table td {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #515154;
+            vertical-align: top;
+        }
+
+        .execution-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .focus-area {
+            color: #a855f7;
+            font-weight: 600;
+        }
+
+        /* Current slide indicator */
+        .current-slide {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            font-size: 14px;
+            color: #86868b;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid #e5e5e7;
+            z-index: 1000;
+        }
+
+        /* Random slide notification */
+        .random-notice {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            font-size: 14px;
+            color: #86868b;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid #e5e5e7;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .random-notice.show {
+            opacity: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .slide-title {
+                font-size: 48px;
+            }
+            
+            .parts-container {
+                flex-direction: column;
+                gap: 40px;
+            }
+            
+            .part-column {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 40px 20px;
+            }
+            
+            .slide-title {
+                font-size: 36px;
+            }
+            
+            .part-box {
+                padding: 30px 20px;
+            }
+            
+            .controls {
+                bottom: 20px;
+            }
+            
+            .indicators {
+                bottom: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Slide 1: Title -->
+    <div class="slide active" id="slide1">
+        <h1 class="slide-title">Code7 Strategic<br><span>Execution Plan</span></h1>
+        <p class="slide-subtitle">Timeline & Focus for Sustainable Growth</p>
+        <div class="content-block">
+            <p style="color: #86868b; font-size: 18px; margin-top: 40px;">A comprehensive roadmap for Code7's three verticals<br>with focused execution strategy</p>
+        </div>
+    </div>
+
+    <!-- Slide 2: Immediate Setup -->
+    <div class="slide" id="slide2">
+        <h1 class="slide-title">Immediate Focus<br><span>Before December 30</span></h1>
+        <p class="slide-subtitle">Setup & Support Work for Clean Environment</p>
+        
+        <ul class="bullet-list">
+            <li><span class="highlight">Clean up systems and settings</span> – Organize digital infrastructure</li>
+            <li><span class="highlight">Workspace preparation</span> – Optimize physical and virtual environment</li>
+            <li><span class="highlight">CRM setup and automation</span> – Streamline client management</li>
+            <li><span class="highlight">Initial minor client support tasks</span> – Delegated or automated</li>
+        </ul>
+        
+        <div class="content-block" style="margin-top: 40px;">
+            <p style="color: #1d1d1f; font-size: 20px; font-weight: 500;">Goal: Clear environment to fully focus on<br><span style="color: #a855f7;">Code7 Main from January</span></p>
+        </div>
+    </div>
+
+    <!-- Slide 3: Three Parts of Code7 -->
+    <div class="slide" id="slide3">
+        <h1 class="slide-title">Code7 Structure<br><span>Three Vertical Model</span></h1>
+        <p class="slide-subtitle">Balanced approach for sustainable growth</p>
+        
+        <div class="parts-container">
+            <div class="part-column">
+                <div class="part-box">
+                    <div class="part-number">1</div>
+                    <h3 class="part-title">Code7 Main</h3>
+                    <p class="part-description">Primary focus area for strategic growth, software development, product creation, and cybersecurity services.</p>
+                </div>
+                
+                <div class="part-box">
+                    <div class="part-number">2</div>
+                    <h3 class="part-title">Code7 Mid</h3>
+                    <p class="part-description">Supporting services for revenue generation and training pipeline – static websites, digital marketing, CRM setup.</p>
+                </div>
+            </div>
+            
+            <div class="part-column">
+                <div class="part-box">
+                    <div class="part-number">3</div>
+                    <h3 class="part-title">Code7 Academy</h3>
+                    <p class="part-description">Educational alignment where students execute real client work as part of training, freeing senior resources.</p>
+                </div>
+                
+                <div class="content-block" style="margin-top: 20px;">
+                    <p style="color: #515154; font-size: 16px; text-align: center;">This three-vertical model ensures balanced growth,<br>with each part supporting the others</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 4: Four Parts of Code7 Main -->
+    <div class="slide" id="slide4">
+        <h1 class="slide-title">Code7 Main<br><span>Four Focus Areas</span></h1>
+        <p class="slide-subtitle">Strategic execution for primary business vertical</p>
+        
+        <div class="parts-container">
+            <div class="part-column">
+                <div class="part-box">
+                    <div class="part-number">1</div>
+                    <h3 class="part-title">Software Development</h3>
+                    <p class="part-description">Custom development for clients in healthcare and compliance domains. Provides revenue and domain expertise.</p>
+                </div>
+                
+                <div class="part-box">
+                    <div class="part-number">2</div>
+                    <h3 class="part-title">Own Product Development</h3>
+                    <p class="part-description">Build MVP yourself first, then hire post-validation. Lean approach reduces risk and cost.</p>
+                </div>
+            </div>
+            
+            <div class="part-column">
+                <div class="part-box">
+                    <div class="part-number">3</div>
+                    <h3 class="part-title">Indian Collaborations</h3>
+                    <p class="part-description">Partner with proven Indian startups to localize solutions for Saudi market, reducing time-to-market.</p>
+                </div>
+                
+                <div class="part-box">
+                    <div class="part-number">4</div>
+                    <h3 class="part-title">Cybersecurity Services</h3>
+                    <p class="part-description">Start with PDPL/VAPT for healthcare, then expand. Build credibility as trusted security partner.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 5: January Onwards -->
+    <div class="slide" id="slide5">
+        <h1 class="slide-title">January Onwards<br><span>Code7 Focus Shift</span></h1>
+        <p class="slide-subtitle">Transition to strategic execution model</p>
+        
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-date">January Start</div>
+                <div class="timeline-content">
+                    <h4>Code7 Main – Primary Focus</h4>
+                    <p>Software development, own product, Indian collaborations, and cybersecurity services become the primary focus with 70% time allocation.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-date">January Concurrent</div>
+                <div class="timeline-content">
+                    <h4>Code7 Mid + Arabdreams IT</h4>
+                    <p>Supporting operations continue with 30% time allocation, providing revenue and training pipeline.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-date">Gradual Shift</div>
+                <div class="timeline-content">
+                    <h4>Increased Code7 Main Focus</h4>
+                    <p>Gradually increase focus on Code7 Main to 80-90% as operations stabilize and systems become efficient.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 6: Focused Execution Steps -->
+    <div class="slide" id="slide6">
+        <h1 class="slide-title">Focused Execution<br><span>Steps for Main</span></h1>
+        <p class="slide-subtitle">Structured approach for each focus area</p>
+        
+        <table class="execution-table">
+            <thead>
+                <tr>
+                    <th>Focus Area</th>
+                    <th>Execution Approach</th>
+                    <th>Team / Resources</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="focus-area">Development (Client work)</td>
+                    <td>Only after work secured</td>
+                    <td>Hire as per project</td>
+                </tr>
+                <tr>
+                    <td class="focus-area">Own Product</td>
+                    <td>MVP built by you first</td>
+                    <td>Hire post-MVP</td>
+                </tr>
+                <tr>
+                    <td class="focus-area">Indian Collaboration</td>
+                    <td>Identify suitable startups</td>
+                    <td>Localize & integrate</td>
+                </tr>
+                <tr>
+                    <td class="focus-area">Cybersecurity</td>
+                    <td>Pick one service initially (PDPL/VAPT for hospitals)</td>
+                    <td>Build marketing + credibility</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Slide 7: Time Allocation Strategy -->
+    <div class="slide" id="slide7">
+        <h1 class="slide-title">Time Allocation<br><span>Strategy</span></h1>
+        <p class="slide-subtitle">Optimized focus distribution for maximum impact</p>
+        
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-date">Before Dec 30</div>
+                <div class="timeline-content">
+                    <h4>Cleanup & Support Work</h4>
+                    <p>100% focus on operational setup, workspace preparation, and system cleanup.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-date">January</div>
+                <div class="timeline-content">
+                    <h4>70% Code7 Main</h4>
+                    <p>Primary focus on strategic execution, product development, and cybersecurity services.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-date">January</div>
+                <div class="timeline-content">
+                    <h4>30% Code7 Mid + Arabdreams IT</h4>
+                    <p>Supporting operations and revenue-generating services.</p>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-date">Gradual Shift</div>
+                <div class="timeline-content">
+                    <h4>80-90% Code7 Main</h4>
+                    <p>Increased focus as operations stabilize and delegation systems mature.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 8: Summary / Senior-Level View -->
+    <div class="slide" id="slide8">
+        <h1 class="slide-title">Senior-Level<br><span>View</span></h1>
+        <p class="slide-subtitle">Strategic overview and key execution priorities</p>
+        
+        <div class="parts-container">
+            <div class="part-column">
+                <div class="part-box">
+                    <h3 class="part-title">Immediate Priority</h3>
+                    <p class="part-description">Finish operational setup → clean environment. Complete all support work by December 30.</p>
+                </div>
+                
+                <div class="part-box">
+                    <h3 class="part-title">Primary Focus</h3>
+                    <p class="part-description">Code7 Main – software development, own product, Indian collaborations, cybersecurity.</p>
+                </div>
+            </div>
+            
+            <div class="part-column">
+                <div class="part-box">
+                    <h3 class="part-title">Supporting Operations</h3>
+                    <p class="part-description">Code7 Mid & Academy – services + training execution, revenue generation.</p>
+                </div>
+                
+                <div class="part-box">
+                    <h3 class="part-title">Team Strategy</h3>
+                    <p class="part-description">Hire only when needed; MVP first for products; focused cybersecurity approach.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content-block" style="margin-top: 40px;">
+            <p style="color: #1d1d1f; font-size: 20px; font-weight: 500;">Growth Plan: From January, dedicate majority of time to Main; scale resources gradually</p>
+        </div>
+    </div>
+
+    <!-- Current slide indicator -->
+    <div class="current-slide" id="currentSlide">Slide 1 of 8</div>
+    
+    <!-- Random notice -->
+    <div class="random-notice" id="randomNotice">Jumped to random slide</div>
+    
+    <!-- Navigation controls -->
+    <div class="controls">
+        <button class="nav-btn" id="prev-btn">Previous</button>
+        <button class="nav-btn purple" id="random-btn">Random Slide</button>
+        <button class="nav-btn" id="next-btn">Next</button>
+    </div>
+    
+    <!-- Slide indicators -->
+    <div class="indicators" id="indicators"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slides = document.querySelectorAll('.slide');
+            const totalSlides = slides.length;
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const randomBtn = document.getElementById('random-btn');
+            const indicatorsContainer = document.getElementById('indicators');
+            const currentSlideDisplay = document.getElementById('currentSlide');
+            const randomNotice = document.getElementById('randomNotice');
+            let currentSlide = 0;
+            
+            // Create slide indicators
+            for (let i = 0; i < totalSlides; i++) {
+                const indicator = document.createElement('div');
+                indicator.className = 'indicator';
+                if (i === 0) indicator.classList.add('active');
+                indicator.dataset.slide = i;
+                indicator.addEventListener('click', () => goToSlide(i));
+                indicatorsContainer.appendChild(indicator);
+            }
+            
+            // Initialize first slide
+            updateSlide();
+            
+            // Previous button
+            prevBtn.addEventListener('click', () => {
+                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                updateSlide();
+            });
+            
+            // Next button
+            nextBtn.addEventListener('click', () => {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                updateSlide();
+            });
+            
+            // Random button
+            randomBtn.addEventListener('click', () => {
+                let newSlide;
+                do {
+                    newSlide = Math.floor(Math.random() * totalSlides);
+                } while (newSlide === currentSlide && totalSlides > 1);
+                
+                currentSlide = newSlide;
+                updateSlide();
+                
+                // Show random notice
+                randomNotice.classList.add('show');
+                setTimeout(() => {
+                    randomNotice.classList.remove('show');
+                }, 2000);
+            });
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    prevBtn.click();
+                } else if (e.key === 'ArrowRight' || e.key === ' ') {
+                    nextBtn.click();
+                } else if (e.key === 'r' || e.key === 'R') {
+                    randomBtn.click();
+                }
+            });
+            
+            // Swipe support for mobile
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            document.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+            
+            document.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+            
+            function handleSwipe() {
+                const swipeThreshold = 50;
+                const diff = touchStartX - touchEndX;
+                
+                if (Math.abs(diff) > swipeThreshold) {
+                    if (diff > 0) {
+                        // Swipe left - next slide
+                        nextBtn.click();
+                    } else {
+                        // Swipe right - previous slide
+                        prevBtn.click();
+                    }
+                }
+            }
+            
+            function goToSlide(slideIndex) {
+                currentSlide = slideIndex;
+                updateSlide();
+            }
+            
+            function updateSlide() {
+                // Hide all slides
+                slides.forEach(slide => {
+                    slide.classList.remove('active');
+                });
+                
+                // Show current slide
+                slides[currentSlide].classList.add('active');
+                
+                // Update current slide display
+                currentSlideDisplay.textContent = `Slide ${currentSlide + 1} of ${totalSlides}`;
+                
+                // Update indicators
+                document.querySelectorAll('.indicator').forEach((indicator, index) => {
+                    if (index === currentSlide) {
+                        indicator.classList.add('active');
+                    } else {
+                        indicator.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
