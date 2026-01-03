@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phone Extractor</title>
+    <title>Phone Extractor Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -18,15 +19,12 @@
             background: #fff;
             color: #1d1d1f;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 40px 20px;
         }
 
         .container {
-            max-width: 720px;
-            width: 100%;
+            max-width: 980px;
+            margin: 0 auto;
         }
 
         .header {
@@ -48,22 +46,36 @@
             font-weight: 400;
         }
 
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
         .card {
             background: #fff;
             border: 1px solid #d2d2d7;
             border-radius: 18px;
-            padding: 48px;
+            padding: 32px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
             margin-bottom: 24px;
+            color: #000;
         }
 
         .upload-zone {
             border: 2px dashed #d2d2d7;
             border-radius: 16px;
-            padding: 80px 40px;
+            padding: 60px 30px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
             background: #fbfbfd;
+            margin-bottom: 24px;
         }
 
         .upload-zone:hover {
@@ -74,25 +86,25 @@
         .upload-zone.dragging {
             border-color: #000;
             background: #f5f5f7;
-            border-width: 2px;
         }
 
         .upload-icon {
-            font-size: 48px;
-            margin-bottom: 20px;
+            font-size: 42px;
+            margin-bottom: 16px;
             opacity: 0.5;
         }
 
         .upload-text {
-            font-size: 19px;
-            margin-bottom: 8px;
+            font-size: 17px;
+            margin-bottom: 6px;
             font-weight: 500;
             color: #1d1d1f;
         }
 
         .upload-hint {
-            font-size: 15px;
+            font-size: 13px;
             color: #86868b;
+            line-height: 1.5;
         }
 
         input[type="file"] {
@@ -100,18 +112,20 @@
         }
 
         .files {
-            margin-top: 24px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
         }
 
         .file-item {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 20px;
+            gap: 12px;
+            padding: 14px 16px;
             background: #f5f5f7;
             border: 1px solid #e5e5e7;
-            border-radius: 12px;
-            margin-bottom: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
             transition: all 0.2s;
         }
 
@@ -120,7 +134,7 @@
         }
 
         .file-icon {
-            font-size: 24px;
+            font-size: 20px;
         }
 
         .file-info {
@@ -129,7 +143,7 @@
         }
 
         .file-name {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 500;
             color: #1d1d1f;
             white-space: nowrap;
@@ -138,7 +152,7 @@
         }
 
         .file-size {
-            font-size: 13px;
+            font-size: 12px;
             color: #86868b;
             margin-top: 2px;
         }
@@ -146,49 +160,55 @@
         .file-remove {
             color: #86868b;
             cursor: pointer;
-            font-size: 24px;
-            padding: 8px;
+            font-size: 20px;
+            padding: 4px;
             transition: color 0.2s;
-            line-height: 1;
         }
 
         .file-remove:hover {
             color: #1d1d1f;
         }
 
-        .settings {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 32px;
+        .section {
+            margin-bottom: 24px;
         }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .input-group label {
+        .section-label {
             font-size: 13px;
             color: #86868b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 500;
+            margin-bottom: 12px;
+            display: block;
         }
 
-        .input-group input {
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            font-size: 13px;
+            color: #86868b;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
             background: #f5f5f7;
             border: 1px solid #d2d2d7;
             color: #1d1d1f;
-            padding: 14px 16px;
-            border-radius: 10px;
-            font-size: 17px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 15px;
             font-family: inherit;
             transition: all 0.2s;
         }
 
-        .input-group input:focus {
+        .input-group input:focus,
+        .input-group select:focus {
             outline: none;
             border-color: #000;
             background: #fff;
@@ -198,17 +218,47 @@
             color: #86868b;
         }
 
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .checkbox-group:hover {
+            background: #f5f5f7;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #000;
+        }
+
+        .checkbox-group label {
+            font-size: 14px;
+            color: #1d1d1f;
+            cursor: pointer;
+            flex: 1;
+        }
+
         .btn {
             width: 100%;
             background: #000;
             color: #fff;
             border: none;
-            padding: 18px;
+            padding: 16px;
             font-size: 17px;
             border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.2s;
+            margin-bottom: 12px;
         }
 
         .btn:hover:not(:disabled) {
@@ -224,7 +274,6 @@
             background: #d2d2d7;
             color: #86868b;
             cursor: not-allowed;
-            transform: none;
         }
 
         .btn-secondary {
@@ -237,39 +286,66 @@
             background: #f5f5f7;
         }
 
+        .btn-clear {
+            background: #fff;
+            color: #86868b;
+            border: 1px solid #d2d2d7;
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        .btn-clear:hover:not(:disabled) {
+            background: #f5f5f7;
+            color: #1d1d1f;
+        }
+
+        .progress-bar {
+            display: none;
+            height: 4px;
+            background: #e5e5e7;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+
+        .progress-bar.show {
+            display: block;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #000;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
         .results {
             display: none;
-            animation: fadeIn 0.4s ease;
         }
 
         .results.show {
             display: block;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
         }
 
         .stat {
             background: #f5f5f7;
             border: 1px solid #e5e5e7;
-            padding: 24px 20px;
+            padding: 20px 16px;
             border-radius: 12px;
             text-align: center;
         }
 
         .stat-value {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: #000;
         }
 
@@ -277,25 +353,24 @@
             font-size: 11px;
             color: #86868b;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            font-weight: 500;
+            letter-spacing: 0.5px;
         }
 
         .preview-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .preview-title {
-            font-size: 17px;
+            font-size: 15px;
             font-weight: 600;
             color: #1d1d1f;
         }
 
         .preview-count {
-            font-size: 15px;
+            font-size: 13px;
             color: #86868b;
         }
 
@@ -303,13 +378,13 @@
             background: #f5f5f7;
             border: 1px solid #e5e5e7;
             border-radius: 12px;
-            padding: 24px;
-            max-height: 320px;
+            padding: 20px;
+            max-height: 400px;
             overflow-y: auto;
-            font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
-            font-size: 14px;
-            line-height: 1.8;
-            margin-bottom: 24px;
+            font-family: 'SF Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 16px;
             color: #1d1d1f;
         }
 
@@ -327,24 +402,36 @@
             border-radius: 4px;
         }
 
-        .preview::-webkit-scrollbar-thumb:hover {
-            background: #86868b;
-        }
-
         .actions {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
         }
 
         .error {
             background: #fff5f5;
             border: 1px solid #ffebeb;
             color: #d1180b;
-            padding: 16px 20px;
+            padding: 14px 16px;
             border-radius: 10px;
             margin-top: 16px;
-            font-size: 14px;
+            font-size: 13px;
+        }
+
+        .success {
+            background: #f0fdf4;
+            border: 1px solid #dcfce7;
+            color: #166534;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-top: 16px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
@@ -356,20 +443,8 @@
                 font-size: 40px;
             }
 
-            .subtitle {
-                font-size: 17px;
-            }
-
             .card {
-                padding: 32px 24px;
-            }
-
-            .upload-zone {
-                padding: 60px 24px;
-            }
-
-            .settings {
-                grid-template-columns: 1fr;
+                padding: 24px 20px;
             }
 
             .stats {
@@ -385,38 +460,126 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Phone Extractor</h1>
-            <p class="subtitle">Extract and clean phone numbers from any spreadsheet</p>
+            <h1>Phone Extractor Pro</h1>
+            <p class="subtitle">Advanced phone number extraction from any file format</p>
         </div>
 
-        <div class="card">
-            <div class="upload-zone" id="uploadZone">
-                <div class="upload-icon">📊</div>
-                <div class="upload-text">Drop files here or click to browse</div>
-                <div class="upload-hint">CSV, XLSX, XLS • Multiple files supported</div>
-                <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple>
+        <div class="main-grid">
+            <div class="card">
+                <div class="card-title">Upload Files or Paste Numbers</div>
+                
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">📊</div>
+                    <div class="upload-text">Drop files or click to browse</div>
+                    <div class="upload-hint">
+                        Supports: CSV, XLSX, XLS, TXT, DOCX<br>
+                        Multiple files • Any size
+                    </div>
+                    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.txt,.docx" multiple>
+                </div>
+
+                <div class="files" id="filesList"></div>
+
+                <div style="margin: 20px 0; text-align: center; color: #86868b; font-size: 13px;">OR</div>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="font-size: 14px; color: #1d1d1f; display: block; margin-bottom: 8px; font-weight: 500;">Paste Numbers Here</label>
+                    <textarea id="pasteBox" placeholder="Paste numbers here (one per line)&#10;Example:&#10;+966-50-123-4567&#10;0501234567&#10;+1 (555) 123-4567" style="width: 100%; min-height: 150px; padding: 14px; border: 1px solid #d2d2d7; border-radius: 10px; font-size: 14px; font-family: 'SF Mono', monospace; background: #f5f5f7; color: #1d1d1f; resize: vertical; line-height: 1.6;"></textarea>
+                </div>
+
+                <button class="btn" id="extractBtn" disabled>Extract Phone Numbers</button>
+                <button class="btn btn-clear" id="clearBtn" style="display:none;">Clear All</button>
+                
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+
+                <div id="statusMsg"></div>
             </div>
 
-            <div class="files" id="filesList"></div>
+            <div class="card">
+                <div class="card-title">Settings</div>
+                
+                <div class="section">
+                    <label class="section-label">Format Options</label>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="addCountryCode">
+                        <label for="addCountryCode">Add country code</label>
+                    </div>
 
-            <div class="settings">
-                <div class="input-group">
-                    <label>Country Code</label>
-                    <input type="text" id="countryCode" placeholder="966" maxlength="4">
+                    <div class="input-group" id="countryCodeGroup" style="display:none;">
+                        <label>Country Code</label>
+                        <input type="text" id="countryCode" placeholder="e.g., 966, 1, 44" maxlength="4">
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="removeLeadingZeros">
+                        <label for="removeLeadingZeros">Remove leading zeros</label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="formatE164" checked>
+                        <label for="formatE164">Format as E.164 (+prefix)</label>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>Minimum Digits</label>
-                    <input type="number" id="minDigits" value="7" min="5" max="15">
+
+                <div class="section">
+                    <label class="section-label">Validation</label>
+                    
+                    <div class="input-group">
+                        <label>Minimum Digits</label>
+                        <input type="number" id="minDigits" value="7" min="5" max="20">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Maximum Digits</label>
+                        <input type="number" id="maxDigits" value="15" min="5" max="20">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Filter by Region</label>
+                        <select id="regionFilter">
+                            <option value="">All regions</option>
+                            <option value="966">Saudi Arabia (+966)</option>
+                            <option value="971">UAE (+971)</option>
+                            <option value="20">Egypt (+20)</option>
+                            <option value="1">USA/Canada (+1)</option>
+                            <option value="44">UK (+44)</option>
+                            <option value="91">India (+91)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <label class="section-label">Output</label>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="removeDuplicates" checked>
+                        <label for="removeDuplicates">Remove duplicates</label>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="sortNumbers" checked>
+                        <label for="sortNumbers">Sort numbers</label>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Format</label>
+                        <select id="outputFormat">
+                            <option value="lines">One per line</option>
+                            <option value="comma">Comma separated</option>
+                            <option value="quoted">Quoted CSV</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-
-            <button class="btn" id="extractBtn" disabled>Extract Numbers</button>
-            
-            <div id="errorMsg"></div>
         </div>
 
         <div class="results" id="results">
             <div class="card">
+                <div class="card-title">Results</div>
+                
                 <div class="stats">
                     <div class="stat">
                         <div class="stat-value" id="totalFound">0</div>
@@ -424,7 +587,7 @@
                     </div>
                     <div class="stat">
                         <div class="stat-value" id="duplicates">0</div>
-                        <div class="stat-label">Removed</div>
+                        <div class="stat-label">Duplicates</div>
                     </div>
                     <div class="stat">
                         <div class="stat-value" id="invalid">0</div>
@@ -437,15 +600,16 @@
                 </div>
 
                 <div class="preview-header">
-                    <div class="preview-title">Results</div>
+                    <div class="preview-title">Preview</div>
                     <div class="preview-count" id="previewCount">0 numbers</div>
                 </div>
 
                 <div class="preview" id="preview"></div>
 
                 <div class="actions">
-                    <button class="btn btn-secondary" id="copyBtn">Copy to Clipboard</button>
-                    <button class="btn" id="downloadBtn">Download CSV</button>
+                    <button class="btn btn-secondary" id="copyBtn">Copy</button>
+                    <button class="btn btn-secondary" id="downloadCsvBtn">CSV</button>
+                    <button class="btn btn-secondary" id="downloadTxtBtn">TXT</button>
                 </div>
             </div>
         </div>
@@ -458,39 +622,73 @@
         const uploadZone = document.getElementById('uploadZone');
         const fileInput = document.getElementById('fileInput');
         const filesList = document.getElementById('filesList');
+        const pasteBox = document.getElementById('pasteBox');
         const extractBtn = document.getElementById('extractBtn');
+        const clearBtn = document.getElementById('clearBtn');
         const results = document.getElementById('results');
         const preview = document.getElementById('preview');
-        const errorMsg = document.getElementById('errorMsg');
-        const copyBtn = document.getElementById('copyBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
 
-        // Upload zone interactions
-        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.onclick = () => fileInput.click();
 
-        uploadZone.addEventListener('dragover', (e) => {
+        uploadZone.ondragover = (e) => {
             e.preventDefault();
-            e.stopPropagation();
             uploadZone.classList.add('dragging');
-        });
+        };
 
-        uploadZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            uploadZone.classList.remove('dragging');
-        });
+        uploadZone.ondragleave = () => uploadZone.classList.remove('dragging');
 
-        uploadZone.addEventListener('drop', (e) => {
+        uploadZone.ondrop = (e) => {
             e.preventDefault();
-            e.stopPropagation();
             uploadZone.classList.remove('dragging');
             handleFiles(Array.from(e.dataTransfer.files));
-        });
+        };
 
-        fileInput.addEventListener('change', (e) => {
+        fileInput.onchange = (e) => {
             handleFiles(Array.from(e.target.files));
             fileInput.value = '';
-        });
+        };
+
+        pasteBox.oninput = () => {
+            checkIfReady();
+        };
+
+        pasteBox.onfocus = () => {
+            pasteBox.style.borderColor = '#000';
+            pasteBox.style.background = '#fff';
+        };
+
+        pasteBox.onblur = () => {
+            pasteBox.style.borderColor = '#d2d2d7';
+            pasteBox.style.background = '#f5f5f7';
+        };
+
+        document.getElementById('addCountryCode').onchange = (e) => {
+            document.getElementById('countryCodeGroup').style.display = e.target.checked ? 'block' : 'none';
+        };
+
+        clearBtn.onclick = () => {
+            files = [];
+            extractedNumbers = [];
+            pasteBox.value = '';
+            updateFilesList();
+            results.classList.remove('show');
+            clearStatus();
+        };
+
+        function checkIfReady() {
+            const hasFiles = files.length > 0;
+            const hasText = pasteBox.value.trim().length > 0;
+            extractBtn.disabled = !(hasFiles || hasText);
+            
+            if (hasFiles || hasText) {
+                clearBtn.style.display = 'block';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+        }
 
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 B';
@@ -501,16 +699,16 @@
         }
 
         function handleFiles(newFiles) {
-            clearError();
+            clearStatus();
             
-            const validExtensions = ['.csv', '.xlsx', '.xls'];
+            const validExts = ['.csv', '.xlsx', '.xls', '.txt', '.docx'];
             const validFiles = newFiles.filter(file => {
                 const ext = '.' + file.name.split('.').pop().toLowerCase();
-                return validExtensions.includes(ext);
+                return validExts.includes(ext);
             });
 
-            if (validFiles.length === 0) {
-                showError('Please upload valid CSV or Excel files');
+            if (validFiles.length === 0 && newFiles.length > 0) {
+                showError('Supported formats: CSV, XLSX, XLS, TXT, DOCX');
                 return;
             }
 
@@ -526,23 +724,26 @@
         function updateFilesList() {
             if (files.length === 0) {
                 filesList.innerHTML = '';
-                extractBtn.disabled = true;
-                results.classList.remove('show');
-                return;
+            } else {
+                filesList.innerHTML = files.map((file, i) => `
+                    <div class="file-item">
+                        <span class="file-icon">${getFileIcon(file.name)}</span>
+                        <div class="file-info">
+                            <div class="file-name">${escapeHtml(file.name)}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                        <span class="file-remove" onclick="removeFile(${i})">×</span>
+                    </div>
+                `).join('');
             }
 
-            filesList.innerHTML = files.map((file, i) => `
-                <div class="file-item">
-                    <span class="file-icon">📄</span>
-                    <div class="file-info">
-                        <div class="file-name">${escapeHtml(file.name)}</div>
-                        <div class="file-size">${formatFileSize(file.size)}</div>
-                    </div>
-                    <span class="file-remove" onclick="removeFile(${i})">×</span>
-                </div>
-            `).join('');
+            checkIfReady();
+        }
 
-            extractBtn.disabled = false;
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const icons = { 'csv': '📊', 'xlsx': '📗', 'xls': '📗', 'txt': '📄', 'docx': '📘' };
+            return icons[ext] || '📄';
         }
 
         function escapeHtml(text) {
@@ -556,218 +757,239 @@
             updateFilesList();
         };
 
-        function showError(message) {
-            errorMsg.innerHTML = `<div class="error">${escapeHtml(message)}</div>`;
+        function showError(msg) {
+            statusMsg.innerHTML = `<div class="error">${escapeHtml(msg)}</div>`;
         }
 
-        function clearError() {
-            errorMsg.innerHTML = '';
+        function showSuccess(msg) {
+            statusMsg.innerHTML = `<div class="success">${escapeHtml(msg)}</div>`;
         }
 
-        // Main extraction logic
-        extractBtn.addEventListener('click', async () => {
-            clearError();
+        function clearStatus() {
+            statusMsg.innerHTML = '';
+        }
+
+        function updateProgress(percent) {
+            progressBar.classList.add('show');
+            progressFill.style.width = percent + '%';
+            if (percent >= 100) {
+                setTimeout(() => progressBar.classList.remove('show'), 500);
+            }
+        }
+
+        extractBtn.onclick = async () => {
+            clearStatus();
+            results.classList.remove('show');
             
-            const countryCode = document.getElementById('countryCode').value.trim();
-            const minDigits = parseInt(document.getElementById('minDigits').value) || 7;
-
-            if (minDigits < 5 || minDigits > 15) {
-                showError('Minimum digits must be between 5 and 15');
+            const settings = getSettings();
+            
+            if (settings.addCountryCode && !settings.countryCode) {
+                showError('Please enter a country code');
                 return;
             }
 
-            if (countryCode && !/^\d{1,4}$/.test(countryCode)) {
-                showError('Country code must be 1-4 digits');
+            if (settings.minDigits > settings.maxDigits) {
+                showError('Min digits cannot exceed max digits');
                 return;
             }
 
             extractBtn.disabled = true;
             extractBtn.textContent = 'Processing...';
-            results.classList.remove('show');
+            updateProgress(0);
 
             try {
-                let allRawNumbers = [];
+                let allRaw = [];
                 
-                for (const file of files) {
-                    const numbers = await extractFromFile(file);
-                    allRawNumbers.push(...numbers);
+                // Process pasted text first
+                const pastedText = pasteBox.value.trim();
+                if (pastedText) {
+                    const pastedNums = extractNumbersFromText(pastedText);
+                    allRaw.push(...pastedNums);
+                }
+                
+                // Then process files
+                const total = files.length;
+                for (let i = 0; i < total; i++) {
+                    updateProgress(((i + 1) / total) * 50);
+                    const nums = await extractFromFile(files[i]);
+                    allRaw.push(...nums);
                 }
 
-                const stats = processNumbers(allRawNumbers, countryCode, minDigits);
+                updateProgress(75);
+                const stats = processNumbers(allRaw, settings);
+                
+                updateProgress(100);
                 displayResults(stats);
+                showSuccess(`Extracted ${stats.final.toLocaleString()} numbers!`);
 
             } catch (error) {
-                console.error('Extraction error:', error);
-                showError('Error processing files: ' + error.message);
+                console.error('Error:', error);
+                showError('Error: ' + error.message);
             } finally {
                 extractBtn.disabled = false;
-                extractBtn.textContent = 'Extract Numbers';
+                extractBtn.textContent = 'Extract Phone Numbers';
             }
-        });
+        };
+
+        function getSettings() {
+            return {
+                addCountryCode: document.getElementById('addCountryCode').checked,
+                countryCode: document.getElementById('countryCode').value.trim(),
+                removeLeadingZeros: document.getElementById('removeLeadingZeros').checked,
+                formatE164: document.getElementById('formatE164').checked,
+                minDigits: parseInt(document.getElementById('minDigits').value) || 7,
+                maxDigits: parseInt(document.getElementById('maxDigits').value) || 15,
+                regionFilter: document.getElementById('regionFilter').value,
+                removeDuplicates: document.getElementById('removeDuplicates').checked,
+                sortNumbers: document.getElementById('sortNumbers').checked,
+                outputFormat: document.getElementById('outputFormat').value
+            };
+        }
 
         async function extractFromFile(file) {
             const ext = file.name.split('.').pop().toLowerCase();
             
             try {
-                if (ext === 'csv') {
-                    const text = await file.text();
-                    return extractFromCSV(text);
-                } else if (ext === 'xlsx' || ext === 'xls') {
-                    const arrayBuffer = await file.arrayBuffer();
-                    return extractFromExcel(arrayBuffer);
-                }
+                if (ext === 'txt') return await extractFromText(file);
+                if (ext === 'csv') return await extractFromCSV(file);
+                if (ext === 'xlsx' || ext === 'xls') return await extractFromExcel(file);
+                if (ext === 'docx') return await extractFromDocx(file);
             } catch (error) {
-                console.error(`Error reading ${file.name}:`, error);
                 throw new Error(`Failed to read ${file.name}`);
             }
             
             return [];
         }
 
-        function extractFromCSV(text) {
-            try {
-                const result = Papa.parse(text, {
-                    skipEmptyLines: true,
-                    delimiter: '',
-                    newline: '',
-                    quoteChar: '"',
-                    escapeChar: '"'
-                });
-                
-                return extractNumbersFromRows(result.data);
-            } catch (error) {
-                console.error('CSV parse error:', error);
-                throw new Error('Failed to parse CSV file');
-            }
+        async function extractFromText(file) {
+            const text = await file.text();
+            return extractNumbersFromText(text);
         }
 
-        function extractFromExcel(arrayBuffer) {
-            try {
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                let numbers = [];
-                
-                workbook.SheetNames.forEach(sheetName => {
-                    try {
-                        const sheet = workbook.Sheets[sheetName];
-                        const rows = XLSX.utils.sheet_to_json(sheet, { 
-                            header: 1,
-                            defval: '',
-                            blankrows: false
-                        });
-                        numbers.push(...extractNumbersFromRows(rows));
-                    } catch (error) {
-                        console.error(`Error reading sheet ${sheetName}:`, error);
-                    }
+        async function extractFromCSV(file) {
+            const text = await file.text();
+            
+            return new Promise((resolve) => {
+                Papa.parse(text, {
+                    complete: (results) => resolve(extractNumbersFromRows(results.data)),
+                    error: () => resolve([]),
+                    skipEmptyLines: true
                 });
-                
-                return numbers;
-            } catch (error) {
-                console.error('Excel parse error:', error);
-                throw new Error('Failed to parse Excel file');
-            }
+            });
+        }
+
+        async function extractFromExcel(file) {
+            const buf = await file.arrayBuffer();
+            const wb = XLSX.read(buf, { type: 'array', cellText: true });
+            
+            let nums = [];
+            wb.SheetNames.forEach(name => {
+                try {
+                    const sheet = wb.Sheets[name];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+                    nums.push(...extractNumbersFromRows(rows));
+                } catch (e) {}
+            });
+            
+            return nums;
+        }
+
+        async function extractFromDocx(file) {
+            const buf = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer: buf });
+            return extractNumbersFromText(result.value);
+        }
+
+        function extractNumbersFromText(text) {
+            const patterns = [
+                /\+?\d[\d\s\-\(\)\.]+\d/g,
+                /\d{5,}/g
+            ];
+            
+            let nums = [];
+            patterns.forEach(p => {
+                const m = text.match(p);
+                if (m) nums.push(...m);
+            });
+            
+            return nums;
         }
 
         function extractNumbersFromRows(rows) {
-            const numbers = [];
+            if (!Array.isArray(rows)) return [];
             
-            if (!Array.isArray(rows)) return numbers;
-            
+            let nums = [];
             rows.forEach(row => {
                 if (!Array.isArray(row)) return;
-                
                 row.forEach(cell => {
-                    if (cell === null || cell === undefined) return;
-                    
+                    if (!cell) return;
                     try {
-                        const cellStr = String(cell).trim();
-                        if (!cellStr) return;
-                        
-                        // Match potential phone numbers with various formats
-                        const patterns = [
-                            /\+?\d[\d\s\-\(\)\.]+\d/g,
-                            /\d{7,}/g
-                        ];
-                        
-                        patterns.forEach(pattern => {
-                            const matches = cellStr.match(pattern);
-                            if (matches) {
-                                numbers.push(...matches);
-                            }
-                        });
-                    } catch (error) {
-                        console.error('Error processing cell:', error);
-                    }
+                        nums.push(...extractNumbersFromText(String(cell)));
+                    } catch (e) {}
                 });
             });
             
-            return numbers;
+            return nums;
         }
 
-        function processNumbers(rawNumbers, countryCode, minDigits) {
-            const stats = {
-                total: rawNumbers.length,
-                invalid: 0,
-                duplicates: 0,
-                final: 0
-            };
+        function processNumbers(raw, settings) {
+            const stats = { total: raw.length, invalid: 0, duplicates: 0, final: 0 };
 
-            // Step 1: Clean and normalize
-            let cleaned = rawNumbers.map(num => {
-                try {
-                    let clean = String(num).trim();
-                    
-                    // Preserve leading + if exists
-                    const hasPlus = clean.startsWith('+');
-                    
-                    // Extract all digits
-                    clean = clean.replace(/\D/g, '');
-                    
-                    // Re-add + if it was there
-                    if (hasPlus && clean) {
-                        clean = '+' + clean;
-                    }
-                    
-                    return clean;
-                } catch (error) {
-                    return '';
-                }
+            let cleaned = raw.map(n => {
+                let c = String(n).trim();
+                const plus = c.startsWith('+');
+                c = c.replace(/\D/g, '');
+                
+                if (settings.removeLeadingZeros) c = c.replace(/^0+/, '');
+                if (plus && c) c = '+' + c;
+                
+                return c;
             }).filter(n => n);
 
-            // Step 2: Validate length
-            const validated = cleaned.filter(num => {
-                const digits = num.replace(/\D/g, '');
-                const valid = digits.length >= minDigits && digits.length <= 15;
-                if (!valid) stats.invalid++;
-                return valid;
+            const valid = cleaned.filter(n => {
+                const d = n.replace(/\D/g, '');
+                const ok = d.length >= settings.minDigits && d.length <= settings.maxDigits;
+                if (!ok) stats.invalid++;
+                return ok;
             });
 
-            // Step 3: Remove duplicates before adding country code
-            const beforeDedup = validated.length;
-            const deduplicated = [...new Set(validated)];
-            stats.duplicates = beforeDedup - deduplicated.length;
+            let filtered = valid;
+            if (settings.regionFilter) {
+                filtered = valid.filter(n => {
+                    const d = n.replace(/^\+/, '');
+                    return d.startsWith(settings.regionFilter);
+                });
+            }
 
-            // Step 4: Add country code
-            let final = deduplicated.map(num => {
-                if (!num.startsWith('+') && countryCode) {
-                    return '+' + countryCode + num;
-                }
-                return num;
-            });
+            let processed = filtered;
+            if (settings.removeDuplicates) {
+                const before = processed.length;
+                processed = [...new Set(processed)];
+                stats.duplicates = before - processed.length;
+            }
 
-            // Step 5: Final deduplication
-            final = [...new Set(final)];
+            if (settings.addCountryCode && settings.countryCode) {
+                processed = processed.map(n => {
+                    if (!n.startsWith('+')) return '+' + settings.countryCode + n;
+                    return n;
+                });
+                processed = [...new Set(processed)];
+            }
 
-            // Step 6: Sort
-            final.sort((a, b) => {
-                const digitsA = a.replace(/\D/g, '');
-                const digitsB = b.replace(/\D/g, '');
-                return digitsA.localeCompare(digitsB, undefined, { numeric: true });
-            });
+            if (settings.formatE164) {
+                processed = processed.map(n => n.startsWith('+') ? n : '+' + n);
+            }
 
-            stats.final = final.length;
-            stats.invalid = stats.total - validated.length;
+            if (settings.sortNumbers) {
+                processed.sort((a, b) => {
+                    const da = a.replace(/\D/g, '');
+                    const db = b.replace(/\D/g, '');
+                    return da.localeCompare(db, undefined, { numeric: true });
+                });
+            }
 
-            extractedNumbers = final;
+            stats.final = processed.length;
+            extractedNumbers = processed;
             return stats;
         }
 
@@ -780,50 +1002,89 @@
             document.getElementById('previewCount').textContent = 
                 `${stats.final.toLocaleString()} number${stats.final !== 1 ? 's' : ''}`;
             
+            const format = document.getElementById('outputFormat').value;
+            let output = '';
+            
             if (extractedNumbers.length === 0) {
-                preview.textContent = 'No valid phone numbers found.\nTry adjusting the minimum digits setting.';
+                output = 'No valid phone numbers found.\nTry adjusting the settings.';
             } else {
-                preview.textContent = extractedNumbers.join('\n');
+                if (format === 'comma') {
+                    output = extractedNumbers.join(', ');
+                } else if (format === 'quoted') {
+                    output = extractedNumbers.map(n => `"${n}"`).join(',\n');
+                } else {
+                    output = extractedNumbers.join('\n');
+                }
             }
             
+            preview.textContent = output;
             results.classList.add('show');
             results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
-        // Copy to clipboard
-        copyBtn.addEventListener('click', async () => {
+        document.getElementById('copyBtn').onclick = async () => {
             try {
-                await navigator.clipboard.writeText(extractedNumbers.join('\n'));
-                const original = copyBtn.textContent;
-                copyBtn.textContent = '✓ Copied';
-                setTimeout(() => copyBtn.textContent = original, 2000);
-            } catch (error) {
-                showError('Failed to copy to clipboard');
+                const format = document.getElementById('outputFormat').value;
+                let text = '';
+                
+                if (format === 'comma') {
+                    text = extractedNumbers.join(', ');
+                } else if (format === 'quoted') {
+                    text = extractedNumbers.map(n => `"${n}"`).join(',\n');
+                } else {
+                    text = extractedNumbers.join('\n');
+                }
+                
+                await navigator.clipboard.writeText(text);
+                const btn = document.getElementById('copyBtn');
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied';
+                setTimeout(() => btn.textContent = orig, 2000);
+            } catch (e) {
+                showError('Failed to copy');
             }
-        });
+        };
 
-        // Download CSV
-        downloadBtn.addEventListener('click', () => {
+        document.getElementById('downloadCsvBtn').onclick = () => {
             try {
                 const csv = extractedNumbers.join('\n');
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                const timestamp = new Date().toISOString().slice(0, 10);
+                downloadFile(csv, 'phone_numbers.csv', 'text/csv');
                 
-                link.href = url;
-                link.download = `phone_numbers_${timestamp}.csv`;
-                link.click();
-                
-                URL.revokeObjectURL(url);
-                
-                const original = downloadBtn.textContent;
-                downloadBtn.textContent = '✓ Downloaded';
-                setTimeout(() => downloadBtn.textContent = original, 2000);
-            } catch (error) {
-                showError('Failed to download file');
+                const btn = document.getElementById('downloadCsvBtn');
+                const orig = btn.textContent;
+                btn.textContent = '✓ Done';
+                setTimeout(() => btn.textContent = orig, 2000);
+            } catch (e) {
+                showError('Download failed');
             }
-        });
+        };
+
+        document.getElementById('downloadTxtBtn').onclick = () => {
+            try {
+                const txt = extractedNumbers.join('\n');
+                downloadFile(txt, 'phone_numbers.txt', 'text/plain');
+                
+                const btn = document.getElementById('downloadTxtBtn');
+                const orig = btn.textContent;
+                btn.textContent = '✓ Done';
+                setTimeout(() => btn.textContent = orig, 2000);
+            } catch (e) {
+                showError('Download failed');
+            }
+        };
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type: type + ';charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const date = new Date().toISOString().slice(0, 10);
+            
+            link.href = url;
+            link.download = filename.replace('.', '_' + date + '.');
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
     </script>
 </body>
 </html>
