@@ -1,1 +1,886 @@
-index
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Presentation Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            z-index: 1000;
+            height: 50px;
+        }
+        
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+        
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
+        }
+        
+        .icon-btn.active {
+            background: #007AFF;
+            color: white;
+        }
+        
+        .icon-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .icon-btn.disabled:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: none;
+        }
+        
+        .mode-tag {
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            font-size: 12px;
+            color: #8E8E93;
+            min-width: 80px;
+            text-align: center;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mode-tag.drawing {
+            background: rgba(255, 68, 0, 0.2);
+            color: #FF4400;
+        }
+        
+        .mode-tag.presentation {
+            background: rgba(88, 86, 214, 0.2);
+            color: #5856D6;
+        }
+        
+        .slides-container {
+            position: fixed;
+            top: 50px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 50px);
+            overflow: hidden;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+        
+        .slide-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+        
+        .slide-frame.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .slide-frame img {
+            max-width: 100%;
+            max-height: 100%;
+            transition: transform 0.3s ease;
+        }
+        
+        #drawCanvas {
+            position: fixed;
+            top: 50px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 50px);
+            z-index: 2;
+            pointer-events: none;
+            cursor: default;
+        }
+        
+        #drawCanvas.drawing-mode {
+            pointer-events: auto;
+            cursor: crosshair;
+        }
+        
+        .slide-counter {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 12px;
+            color: #8E8E93;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .slide-counter.show {
+            display: block;
+        }
+        
+        .floating-indicator {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            padding: 8px 14px;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 12px;
+            color: #8E8E93;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            max-width: 280px;
+        }
+        
+        .floating-indicator.drawing {
+            background: rgba(0, 0, 0, 0.95);
+            border-color: #FF4400;
+            color: #FF4400;
+        }
+        
+        .floating-indicator .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #34C759;
+        }
+        
+        .floating-indicator.drawing .dot {
+            background: #FF4400;
+        }
+        
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        #fileInput {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .slide-navigation {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-left: auto;
+        }
+        
+        .slide-nav-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+        
+        .slide-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .slide-nav-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .slide-nav-btn.disabled:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .presentation-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .presentation-info {
+            font-size: 12px;
+            color: #8E8E93;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        
+        .zoom-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .zoom-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .zoom-display {
+            font-size: 11px;
+            color: #8E8E93;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .filename-display {
+            font-size: 12px;
+            color: #8E8E93;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 0 10px;
+        }
+        
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        
+        .zoom-notice {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 6px;
+            font-size: 11px;
+            color: #8E8E93;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .zoom-notice.show {
+            opacity: 1;
+        }
+        
+        .empty-state {
+            position: fixed;
+            top: 50px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 50px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #8E8E93;
+            z-index: 0;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-state p {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .controls-spacer {
+            flex: 1;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PDF.js libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+</head>
+<body>
+    <div class="controls">
+        <div class="file-input-container">
+            <button class="icon-btn" id="uploadBtn" title="Upload PDF">
+                <i class="fas fa-upload"></i>
+            </button>
+            <input type="file" id="fileInput" accept=".pdf">
+        </div>
+        
+        <div class="filename-display" id="filenameDisplay">No PDF loaded</div>
+        
+        <div class="controls-spacer"></div>
+        
+        <div class="presentation-controls" id="presentationControls" style="display: none;">
+            <div class="slide-navigation">
+                <button class="slide-nav-btn" id="prevBtn" title="Previous Slide">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="presentation-info" id="presentationInfo">1/1</div>
+                <button class="slide-nav-btn" id="nextBtn" title="Next Slide">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="zoom-controls" id="zoomControls" style="display: none;">
+            <button class="zoom-btn" id="zoomOutBtn" title="Zoom Out">
+                <i class="fas fa-search-minus"></i>
+            </button>
+            <div class="zoom-display" id="zoomDisplay">100%</div>
+            <button class="zoom-btn" id="zoomInBtn" title="Zoom In">
+                <i class="fas fa-search-plus"></i>
+            </button>
+            <button class="zoom-btn" id="zoomResetBtn" title="Reset Zoom">
+                <i class="fas fa-expand-alt"></i>
+            </button>
+        </div>
+        
+        <button class="icon-btn" id="drawBtn" title="Toggle Drawing Mode">
+            <i class="fas fa-pen"></i>
+        </button>
+        <button class="icon-btn" id="clearBtn" title="Clear Drawings">
+            <i class="fas fa-eraser"></i>
+        </button>
+        <div class="mode-tag" id="modeTag">Ready</div>
+    </div>
+    
+    <div id="slidesContainer"></div>
+    <div class="slide-counter" id="slideCounter">Slide 1 of 1</div>
+    <canvas id="drawCanvas"></canvas>
+    
+    <div class="floating-indicator" id="floatingIndicator">
+        <div class="dot"></div>
+        <span id="indicatorText">Double click to draw</span>
+    </div>
+    
+    <div class="empty-state" id="emptyState">
+        <i class="fas fa-file-pdf"></i>
+        <h3>Upload a PDF to start presenting</h3>
+        <p>Click the upload button above to begin</p>
+    </div>
+    
+    <div class="zoom-notice" id="zoomNotice">Hold Ctrl and scroll to zoom</div>
+
+    <script>
+        // Global variables
+        let currentSlide = 0;
+        let totalSlides = 0;
+        let presentationSlides = [];
+        let isDrawingMode = false;
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        let clickTimer = null;
+        let clickCount = 0;
+        let currentColor = '#007AFF';
+        let presentationFileName = 'No PDF loaded';
+        let zoomLevel = 1;
+        let zoomMin = 0.5;
+        let zoomMax = 3;
+        let zoomStep = 0.1;
+        let currentImageElement = null;
+        
+        // DOM elements
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        const drawBtn = document.getElementById('drawBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const modeTag = document.getElementById('modeTag');
+        const floatingIndicator = document.getElementById('floatingIndicator');
+        const indicatorText = document.getElementById('indicatorText');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const slidesContainer = document.getElementById('slidesContainer');
+        const presentationControls = document.getElementById('presentationControls');
+        const presentationInfo = document.getElementById('presentationInfo');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const slideCounter = document.getElementById('slideCounter');
+        const zoomControls = document.getElementById('zoomControls');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const zoomResetBtn = document.getElementById('zoomResetBtn');
+        const zoomDisplay = document.getElementById('zoomDisplay');
+        const zoomNotice = document.getElementById('zoomNotice');
+        const emptyState = document.getElementById('emptyState');
+        const filenameDisplay = document.getElementById('filenameDisplay');
+        
+        const colors = ['#FF3B30', '#007AFF', '#34C759', '#FF9500', '#AF52DE'];
+        
+        // Initialize
+        function init() {
+            resizeCanvas();
+            setupEventListeners();
+        }
+        
+        // Show zoom notice briefly
+        function showZoomNotice() {
+            zoomNotice.classList.add('show');
+            setTimeout(() => {
+                zoomNotice.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Setup all event listeners
+        function setupEventListeners() {
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Canvas events
+            canvas.addEventListener('click', handleCanvasClick);
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+            
+            // Touch events
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            // Button events
+            drawBtn.addEventListener('click', toggleDrawingMode);
+            clearBtn.addEventListener('click', clearDrawings);
+            
+            // File upload events
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileUpload);
+            
+            // Navigation events
+            prevBtn.addEventListener('click', prevSlide);
+            nextBtn.addEventListener('click', nextSlide);
+            
+            // Zoom events
+            zoomInBtn.addEventListener('click', () => adjustZoom(zoomStep));
+            zoomOutBtn.addEventListener('click', () => adjustZoom(-zoomStep));
+            zoomResetBtn.addEventListener('click', resetZoom);
+            
+            // Mouse wheel zoom for presentation mode
+            document.addEventListener('wheel', handleWheelZoom, { passive: false });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', handleKeyDown);
+            
+            // Show zoom notice on mouse wheel with Ctrl
+            document.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) {
+                    showZoomNotice();
+                }
+            });
+        }
+        
+        // Handle wheel zoom for presentation
+        function handleWheelZoom(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                const zoomChange = e.deltaY > 0 ? -zoomStep : zoomStep;
+                adjustZoom(zoomChange);
+            }
+        }
+        
+        // Handle keyboard shortcuts
+        function handleKeyDown(e) {
+            switch(e.key) {
+                case 'ArrowLeft':
+                    prevSlide();
+                    break;
+                case 'ArrowRight':
+                case ' ':
+                    nextSlide();
+                    break;
+                case 'd':
+                    if (e.ctrlKey || e.metaKey) return;
+                    toggleDrawingMode();
+                    break;
+                case 'Escape':
+                    if (isDrawingMode) toggleDrawingMode();
+                    break;
+                case 'c':
+                    if (e.ctrlKey || e.metaKey) return;
+                    clearDrawings();
+                    break;
+                case '+':
+                case '=':
+                    if (e.ctrlKey || e.metaKey) {
+                        e.preventDefault();
+                        adjustZoom(zoomStep);
+                    }
+                    break;
+                case '-':
+                    if (e.ctrlKey || e.metaKey) {
+                        e.preventDefault();
+                        adjustZoom(-zoomStep);
+                    }
+                    break;
+                case '0':
+                    if (e.ctrlKey || e.metaKey) {
+                        e.preventDefault();
+                        resetZoom();
+                    }
+                    break;
+            }
+        }
+        
+        // Handle file upload
+        async function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            presentationFileName = file.name;
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            
+            if (fileExt === 'pdf') {
+                await loadPDF(file);
+            } else {
+                alert('Please upload a PDF file.');
+                fileInput.value = '';
+                return;
+            }
+            
+            fileInput.value = '';
+        }
+        
+        // Load PDF file
+        async function loadPDF(file) {
+            try {
+                emptyState.style.display = 'none';
+                slidesContainer.innerHTML = '';
+                presentationSlides = [];
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                
+                totalSlides = pdf.numPages;
+                
+                // Create slides for each page
+                for (let i = 1; i <= totalSlides; i++) {
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    
+                    const slideCanvas = document.createElement('canvas');
+                    const context = slideCanvas.getContext('2d');
+                    slideCanvas.width = viewport.width;
+                    slideCanvas.height = viewport.height;
+                    
+                    await page.render({
+                        canvasContext: context,
+                        viewport: viewport
+                    }).promise;
+                    
+                    const slideDiv = document.createElement('div');
+                    slideDiv.className = 'slide-frame';
+                    slideDiv.style.display = 'none';
+                    slideDiv.dataset.index = i - 1;
+                    
+                    const img = document.createElement('img');
+                    img.src = slideCanvas.toDataURL();
+                    img.className = 'slide-image';
+                    img.dataset.index = i - 1;
+                    
+                    slideDiv.appendChild(img);
+                    slidesContainer.appendChild(slideDiv);
+                    presentationSlides.push(slideDiv);
+                }
+                
+                showSlide(0);
+                updateNavigation();
+                filenameDisplay.textContent = presentationFileName;
+                presentationControls.style.display = 'flex';
+                zoomControls.style.display = 'flex';
+                modeTag.textContent = 'Presenting';
+                modeTag.classList.add('presentation');
+                indicatorText.textContent = 'Use arrow keys, Ctrl+scroll to zoom';
+                
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                alert('Error loading PDF file. Please try another file.');
+                emptyState.style.display = 'flex';
+            }
+        }
+        
+        // Adjust zoom level
+        function adjustZoom(change) {
+            if (presentationSlides.length === 0) return;
+            
+            zoomLevel = Math.max(zoomMin, Math.min(zoomMax, zoomLevel + change));
+            applyZoom();
+            updateZoomDisplay();
+        }
+        
+        // Reset zoom to 100%
+        function resetZoom() {
+            if (presentationSlides.length === 0) return;
+            
+            zoomLevel = 1;
+            applyZoom();
+            updateZoomDisplay();
+        }
+        
+        // Apply zoom to current slide image
+        function applyZoom() {
+            if (presentationSlides.length === 0 || !currentImageElement) return;
+            
+            currentImageElement.style.transform = `scale(${zoomLevel})`;
+            currentImageElement.style.transformOrigin = 'center center';
+            
+            // Adjust parent container scrolling
+            const slideContainer = presentationSlides[currentSlide];
+            slideContainer.scrollLeft = (currentImageElement.clientWidth * zoomLevel - slideContainer.clientWidth) / 2;
+            slideContainer.scrollTop = (currentImageElement.clientHeight * zoomLevel - slideContainer.clientHeight) / 2;
+        }
+        
+        // Update zoom display
+        function updateZoomDisplay() {
+            zoomDisplay.textContent = `${Math.round(zoomLevel * 100)}%`;
+        }
+        
+        // Show specific slide
+        function showSlide(index) {
+            if (presentationSlides.length === 0) return;
+            
+            // Hide all slides
+            presentationSlides.forEach(slide => {
+                slide.style.display = 'none';
+            });
+            
+            // Show current slide
+            currentSlide = Math.max(0, Math.min(index, totalSlides - 1));
+            presentationSlides[currentSlide].style.display = 'flex';
+            
+            // Set current image element
+            currentImageElement = presentationSlides[currentSlide]?.querySelector('img');
+            applyZoom();
+            
+            updateNavigation();
+            clearDrawings();
+            slideCounter.textContent = `Slide ${currentSlide + 1} of ${totalSlides}`;
+            slideCounter.classList.add('show');
+        }
+        
+        // Next slide
+        function nextSlide() {
+            if (currentSlide >= totalSlides - 1) return;
+            showSlide(currentSlide + 1);
+        }
+        
+        // Previous slide
+        function prevSlide() {
+            if (currentSlide <= 0) return;
+            showSlide(currentSlide - 1);
+        }
+        
+        // Update navigation buttons and info
+        function updateNavigation() {
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === totalSlides - 1;
+            
+            if (prevBtn.disabled) {
+                prevBtn.classList.add('disabled');
+            } else {
+                prevBtn.classList.remove('disabled');
+            }
+            
+            if (nextBtn.disabled) {
+                nextBtn.classList.add('disabled');
+            } else {
+                nextBtn.classList.remove('disabled');
+            }
+            
+            presentationInfo.textContent = `${currentSlide + 1}/${totalSlides}`;
+        }
+        
+        // Canvas functions
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - 50;
+        }
+        
+        function handleCanvasClick(e) {
+            if (presentationSlides.length === 0) return;
+            
+            clickCount++;
+            
+            if (clickCount === 1) {
+                clickTimer = setTimeout(() => {
+                    clickCount = 0;
+                }, 300);
+            } else if (clickCount === 2) {
+                clearTimeout(clickTimer);
+                toggleDrawingMode();
+                clickCount = 0;
+                
+                if (!isDrawingMode) {
+                    clearDrawings();
+                }
+            }
+        }
+        
+        function handleTouchStart(e) {
+            if (!isDrawingMode || presentationSlides.length === 0) return;
+            
+            e.preventDefault();
+            isDrawing = true;
+            const touch = e.touches[0];
+            lastX = touch.clientX;
+            lastY = touch.clientY - 50;
+        }
+        
+        function handleTouchMove(e) {
+            if (!isDrawing || !isDrawingMode || presentationSlides.length === 0) return;
+            
+            e.preventDefault();
+            const touch = e.touches[0];
+            const x = touch.clientX;
+            const y = touch.clientY - 50;
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            
+            lastX = x;
+            lastY = y;
+        }
+        
+        function startDrawing(e) {
+            if (!isDrawingMode || presentationSlides.length === 0) return;
+            
+            isDrawing = true;
+            lastX = e.clientX;
+            lastY = e.clientY - 50;
+        }
+        
+        function draw(e) {
+            if (!isDrawing || !isDrawingMode || presentationSlides.length === 0) return;
+            
+            const x = e.clientX;
+            const y = e.clientY - 50;
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            
+            lastX = x;
+            lastY = y;
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        function toggleDrawingMode() {
+            if (presentationSlides.length === 0) return;
+            
+            isDrawingMode = !isDrawingMode;
+            
+            if (isDrawingMode) {
+                canvas.classList.add('drawing-mode');
+                modeTag.textContent = 'Drawing';
+                modeTag.classList.add('drawing');
+                modeTag.classList.remove('presentation');
+                drawBtn.classList.add('active');
+                floatingIndicator.textContent = 'Drawing - Double click to exit';
+                floatingIndicator.classList.add('drawing');
+                
+                currentColor = colors[Math.floor(Math.random() * colors.length)];
+                ctx.strokeStyle = currentColor;
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+            } else {
+                canvas.classList.remove('drawing-mode');
+                modeTag.textContent = 'Presenting';
+                modeTag.classList.remove('drawing');
+                modeTag.classList.add('presentation');
+                drawBtn.classList.remove('active');
+                floatingIndicator.textContent = 'Double click to draw';
+                floatingIndicator.classList.remove('drawing');
+            }
+            
+            clickCount = 0;
+            clearTimeout(clickTimer);
+        }
+        
+        function clearDrawings() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // Auto-hide floating indicator
+        setTimeout(() => {
+            floatingIndicator.style.opacity = '0.6';
+            
+            floatingIndicator.addEventListener('mouseenter', () => {
+                floatingIndicator.style.opacity = '1';
+            });
+            
+            floatingIndicator.addEventListener('mouseleave', () => {
+                floatingIndicator.style.opacity = '0.6';
+            });
+        }, 3000);
+        
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>
