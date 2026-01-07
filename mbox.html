@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mbox Splitter | Code7 Tools</title>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Main layout */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Tool panel */
+        .tool-panel {
+            border: 1px solid #ddd;
+            padding: 20px;
+            background: #fff;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        input[type="email"]:focus {
+            outline: none;
+            border-color: #666;
+        }
+
+        /* File upload */
+        .file-upload {
+            border: 2px dashed #ccc;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #fafafa;
+        }
+
+        .file-upload:hover {
+            background: #f5f5f5;
+        }
+
+        .upload-text {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .upload-subtext {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            font-weight: 500;
+            display: none;
+        }
+
+        /* Button */
+        .process-btn {
+            width: 100%;
+            padding: 12px;
+            background: #000;
+            color: #fff;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .process-btn:hover:not(:disabled) {
+            background: #333;
+        }
+
+        .process-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        /* Progress panel */
+        .progress-panel {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+            background: #fafafa;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .progress-text {
+            font-weight: 500;
+        }
+
+        .progress-percent {
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #ddd;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #000;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* Log */
+        .log {
+            border: 1px solid #ddd;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #fff;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .log-entry::before {
+            content: ">";
+            position: absolute;
+            left: 8px;
+            color: #666;
+        }
+
+        .log-entry.error {
+            color: #d00;
+        }
+
+        /* Results */
+        .results-panel {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .results-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            background: #fff;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-title {
+            font-weight: 500;
+        }
+
+        .result-count {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        /* Download buttons */
+        .download-btn {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #000;
+            background: #fff;
+            color: #000;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .download-btn:hover:not(:disabled) {
+            background: #000;
+            color: #fff;
+        }
+
+        .download-btn:disabled {
+            border-color: #ccc;
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Restart button */
+        .restart-btn {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #666;
+            background: #fff;
+            color: #666;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .restart-btn:hover {
+            background: #666;
+            color: #fff;
+        }
+
+        /* Info panel */
+        .info-panel {
+            border: 1px solid #ddd;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .info-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .info-list {
+            list-style: none;
+        }
+
+        .info-item {
+            margin-bottom: 15px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .info-item::before {
+            content: "•";
+            position: absolute;
+            left: 8px;
+            color: #666;
+        }
+
+        .info-item strong {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .info-item p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #000;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>Mbox Splitter</h1>
+        <p>Split Mbox files locally in your browser</p>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Tool Panel -->
+        <div>
+            <div class="tool-panel">
+                <!-- Email Input -->
+                <div class="input-group">
+                    <label>Your Email Address</label>
+                    <input type="email" id="email" placeholder="your.email@gmail.com">
+                </div>
+
+                <!-- File Upload -->
+                <div class="input-group">
+                    <label>Mbox File</label>
+                    <div class="file-upload" id="file-drop">
+                        <div class="upload-text" id="file-text">Drop .mbox file or click to select</div>
+                        <div class="upload-subtext">All attachments preserved • Up to 10GB</div>
+                        <div class="file-info" id="file-info"></div>
+                        <input type="file" id="file-input" accept=".mbox,.txt" style="display: none;">
+                    </div>
+                </div>
+
+                <!-- Process Button -->
+                <button id="process-btn" class="process-btn" disabled>Split Mbox File</button>
+
+                <!-- Progress Panel -->
+                <div id="progress-panel" class="progress-panel">
+                    <div class="progress-header">
+                        <div class="progress-text" id="progress-text">Processing...</div>
+                        <div class="progress-percent" id="progress-percent">0%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="log" id="log"></div>
+                </div>
+
+                <!-- Results Panel -->
+                <div id="results-panel" class="results-panel">
+                    <div class="results-header">
+                        <h3>Split Complete</h3>
+                        <p>All data preserved • Ready to download</p>
+                    </div>
+
+                    <div class="results-grid">
+                        <!-- Sent -->
+                        <div class="result-card">
+                            <div class="result-header">
+                                <div class="result-title">Sent Messages</div>
+                                <div class="result-count" id="sent-count">0</div>
+                            </div>
+                            <button id="download-sent" class="download-btn" disabled>Download Sent.mbox</button>
+                        </div>
+
+                        <!-- Received -->
+                        <div class="result-card">
+                            <div class="result-header">
+                                <div class="result-title">Received Messages</div>
+                                <div class="result-count" id="received-count">0</div>
+                            </div>
+                            <button id="download-received" class="download-btn" disabled>Download Received.mbox</button>
+                        </div>
+
+                        <!-- Spam -->
+                        <div class="result-card">
+                            <div class="result-header">
+                                <div class="result-title">Spam/Junk</div>
+                                <div class="result-count" id="spam-count">0</div>
+                            </div>
+                            <button id="download-spam" class="download-btn" disabled>Download Spam.mbox</button>
+                        </div>
+                    </div>
+
+                    <button id="restart-btn" class="restart-btn">Split Another File</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="info-panel">
+            <h3 class="info-title">About This Tool</h3>
+            <ul class="info-list">
+                <li class="info-item">
+                    <strong>100% Browser-Based</strong>
+                    <p>All processing happens in your browser. No data is uploaded to servers.</p>
+                </li>
+                <li class="info-item">
+                    <strong>Complete Data Preservation</strong>
+                    <p>All attachments, images, and binary data are kept intact.</p>
+                </li>
+                <li class="info-item">
+                    <strong>Multi-GB Support</strong>
+                    <p>Handles large Mbox files up to 10GB using smart memory management.</p>
+                </li>
+                <li class="info-item">
+                    <strong>Privacy First</strong>
+                    <p>No data collection. No tracking. Everything stays on your computer.</p>
+                </li>
+                <li class="info-item">
+                    <strong>Works Offline</strong>
+                    <p>Once loaded, this tool works completely offline.</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Part of <a href="https://code7.arabdreams.org">Code7 Tools</a> • Free & Open Source</p>
+        <p>All processing happens locally in your browser. No data is transmitted.</p>
+    </div>
+
+    <script>
+        // State
+        let currentFile = null;
+        let isProcessing = false;
+        let messageBoundaries = {
+            sent: [],
+            received: [],
+            spam: []
+        };
+        let fileArrayBuffer = null;
+
+        // DOM Elements
+        const emailInput = document.getElementById('email');
+        const fileInput = document.getElementById('file-input');
+        const fileDrop = document.getElementById('file-drop');
+        const fileText = document.getElementById('file-text');
+        const fileInfo = document.getElementById('file-info');
+        const processBtn = document.getElementById('process-btn');
+        const progressPanel = document.getElementById('progress-panel');
+        const progressText = document.getElementById('progress-text');
+        const progressPercent = document.getElementById('progress-percent');
+        const progressFill = document.getElementById('progress-fill');
+        const log = document.getElementById('log');
+        const resultsPanel = document.getElementById('results-panel');
+        const sentCount = document.getElementById('sent-count');
+        const receivedCount = document.getElementById('received-count');
+        const spamCount = document.getElementById('spam-count');
+        const downloadSentBtn = document.getElementById('download-sent');
+        const downloadReceivedBtn = document.getElementById('download-received');
+        const downloadSpamBtn = document.getElementById('download-spam');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Logging
+        function addLog(msg, type = '') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+            console.log(msg);
+        }
+
+        // UI Updates
+        function updateProgress(percent, text) {
+            progressFill.style.width = `${percent}%`;
+            progressPercent.textContent = `${percent}%`;
+            if (text) progressText.textContent = text;
+        }
+
+        function showProgress(show) {
+            progressPanel.style.display = show ? 'block' : 'none';
+            if (show) {
+                log.innerHTML = '';
+                updateProgress(0, 'Starting...');
+            }
+        }
+
+        function showResults(show) {
+            resultsPanel.style.display = show ? 'block' : 'none';
+        }
+
+        function updateButtonState() {
+            const hasEmail = emailInput.value.trim().length > 0;
+            const hasFile = currentFile !== null;
+            processBtn.disabled = !hasEmail || !hasFile || isProcessing;
+        }
+
+        // File Handling
+        function handleFileSelect(file) {
+            currentFile = file;
+            const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+            const sizeGB = (file.size / 1024 / 1024 / 1024).toFixed(2);
+            
+            fileText.textContent = file.name;
+            fileInfo.textContent = file.size > 1024 * 1024 * 1024 ? 
+                `${sizeGB} GB • Large file` : 
+                `${sizeMB} MB • Ready`;
+            fileInfo.style.display = 'block';
+            
+            // Reset
+            messageBoundaries = { sent: [], received: [], spam: [] };
+            showResults(false);
+            updateButtonState();
+            
+            addLog(`File: ${file.name} (${sizeMB} MB)`);
+        }
+
+        // Event Listeners
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) handleFileSelect(e.target.files[0]);
+        });
+
+        fileDrop.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileDrop.style.borderColor = '#666';
+            fileDrop.style.background = '#f5f5f5';
+        });
+
+        fileDrop.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            fileDrop.style.borderColor = '#ccc';
+            fileDrop.style.background = '#fafafa';
+        });
+
+        fileDrop.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileDrop.style.borderColor = '#ccc';
+            fileDrop.style.background = '#fafafa';
+            if (e.dataTransfer.files[0]) handleFileSelect(e.dataTransfer.files[0]);
+        });
+
+        fileDrop.addEventListener('click', () => fileInput.click());
+        emailInput.addEventListener('input', updateButtonState);
+
+        // Process Mbox
+        async function processMbox() {
+            if (!currentFile || !emailInput.value.trim() || isProcessing) return;
+            
+            isProcessing = true;
+            updateButtonState();
+            showProgress(true);
+            showResults(false);
+            
+            const userEmail = emailInput.value.trim().toLowerCase();
+            let messageCount = 0;
+            
+            try {
+                addLog('Loading file...');
+                updateProgress(5, 'Loading...');
+                
+                // Load file
+                fileArrayBuffer = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsArrayBuffer(currentFile);
+                });
+                
+                const uint8Array = new Uint8Array(fileArrayBuffer);
+                const fileSize = uint8Array.length;
+                
+                addLog('Finding messages...');
+                updateProgress(10, 'Scanning...');
+                
+                // Find messages
+                let messageStarts = [];
+                let currentPos = 0;
+                
+                while (currentPos < fileSize - 100) {
+                    // Check for "From " pattern
+                    if (currentPos + 5 < fileSize &&
+                        uint8Array[currentPos] === 70 && // F
+                        uint8Array[currentPos + 1] === 114 && // r
+                        uint8Array[currentPos + 2] === 111 && // o
+                        uint8Array[currentPos + 3] === 109 && // m
+                        uint8Array[currentPos + 4] === 32) { // space
+                        
+                        let hasTimestamp = false;
+                        for (let i = currentPos + 5; i < Math.min(currentPos + 100, fileSize); i++) {
+                            if (uint8Array[i] === 10 || uint8Array[i] === 13) {
+                                const lineLength = i - currentPos;
+                                if (lineLength > 20) {
+                                    hasTimestamp = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (hasTimestamp && (messageStarts.length === 0 || currentPos - messageStarts[messageStarts.length - 1] > 100)) {
+                            messageStarts.push(currentPos);
+                        }
+                    }
+                    
+                    currentPos++;
+                    
+                    // Update progress
+                    if (currentPos % 1000000 === 0) {
+                        const percent = 10 + Math.round((currentPos / fileSize) * 30);
+                        updateProgress(percent, `Scanning: ${(currentPos / 1024 / 1024).toFixed(1)} MB`);
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                }
+                
+                messageStarts.push(fileSize);
+                
+                addLog(`Found ${messageStarts.length - 1} messages`);
+                updateProgress(45, 'Categorizing...');
+                
+                // Categorize
+                for (let i = 0; i < messageStarts.length - 1; i++) {
+                    const start = messageStarts[i];
+                    const end = messageStarts[i + 1];
+                    const messageSize = end - start;
+                    
+                    if (messageSize < 100) continue;
+                    
+                    // Get headers
+                    const headerSize = Math.min(messageSize, 10240);
+                    const headerBytes = uint8Array.slice(start, start + headerSize);
+                    
+                    let headerText = '';
+                    for (let j = 0; j < headerSize; j++) {
+                        const byte = headerBytes[j];
+                        if (byte === 0) break;
+                        if (byte >= 32 && byte <= 126 || byte === 10 || byte === 13 || byte === 9) {
+                            headerText += String.fromCharCode(byte);
+                        }
+                    }
+                    
+                    headerText = headerText.toLowerCase();
+                    
+                    const isSpam = headerText.includes('x-gmail-labels:') && 
+                                  (headerText.includes('spam') || headerText.includes('junk'));
+                    
+                    let isSent = false;
+                    const fromMatch = headerText.match(/from:\s*(.+?)(?:\r?\n|$)/);
+                    if (fromMatch && fromMatch[1].includes(userEmail)) {
+                        isSent = true;
+                    }
+                    
+                    const boundary = { start, end, size: messageSize };
+                    
+                    if (isSpam) {
+                        messageBoundaries.spam.push(boundary);
+                    } else if (isSent) {
+                        messageBoundaries.sent.push(boundary);
+                    } else {
+                        messageBoundaries.received.push(boundary);
+                    }
+                    
+                    messageCount++;
+                    
+                    // Update progress
+                    if (i % 100 === 0 || i === messageStarts.length - 2) {
+                        const percent = 45 + Math.round((i / (messageStarts.length - 1)) * 50);
+                        updateProgress(percent, `Processing: ${i + 1}/${messageStarts.length - 1} messages`);
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                }
+                
+                // Update results
+                updateProgress(95, 'Finalizing...');
+                
+                sentCount.textContent = messageBoundaries.sent.length;
+                receivedCount.textContent = messageBoundaries.received.length;
+                spamCount.textContent = messageBoundaries.spam.length;
+                
+                downloadSentBtn.disabled = messageBoundaries.sent.length === 0;
+                downloadReceivedBtn.disabled = messageBoundaries.received.length === 0;
+                downloadSpamBtn.disabled = messageBoundaries.spam.length === 0;
+                
+                addLog(`Complete: ${messageCount} messages`);
+                addLog(`Sent: ${messageBoundaries.sent.length}`);
+                addLog(`Received: ${messageBoundaries.received.length}`);
+                addLog(`Spam: ${messageBoundaries.spam.length}`);
+                
+                updateProgress(100, 'Done!');
+                
+                // Show results
+                setTimeout(() => {
+                    showProgress(false);
+                    showResults(true);
+                    isProcessing = false;
+                    updateButtonState();
+                }, 1000);
+                
+            } catch (error) {
+                addLog(`Error: ${error.message}`, 'error');
+                updateProgress(100, 'Error!');
+                isProcessing = false;
+                updateButtonState();
+                
+                setTimeout(() => {
+                    showProgress(false);
+                }, 2000);
+            }
+        }
+
+        // Download Functions
+        async function downloadCategory(category, filename) {
+            const boundaries = messageBoundaries[category];
+            if (!boundaries || boundaries.length === 0) {
+                alert('No messages in this category');
+                return;
+            }
+            
+            showProgress(true);
+            updateProgress(0, 'Preparing download...');
+            
+            try {
+                if (!fileArrayBuffer) {
+                    fileArrayBuffer = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.onerror = reject;
+                        reader.readAsArrayBuffer(currentFile);
+                    });
+                }
+                
+                const uint8Array = new Uint8Array(fileArrayBuffer);
+                const blobParts = [];
+                
+                // Process in batches
+                const batchSize = 50;
+                for (let i = 0; i < boundaries.length; i += batchSize) {
+                    const batch = boundaries.slice(i, i + batchSize);
+                    
+                    for (let j = 0; j < batch.length; j++) {
+                        const { start, end } = batch[j];
+                        const messageData = uint8Array.slice(start, end);
+                        
+                        if (i + j > 0) {
+                            blobParts.push(new Uint8Array([0x0A])); // Newline
+                        }
+                        
+                        blobParts.push(messageData);
+                    }
+                    
+                    const percent = Math.round((Math.min(i + batchSize, boundaries.length) / boundaries.length) * 90);
+                    updateProgress(percent, `Processing: ${Math.min(i + batchSize, boundaries.length)}/${boundaries.length}`);
+                    await new Promise(r => setTimeout(r, 0));
+                }
+                
+                updateProgress(95, 'Creating file...');
+                
+                const finalBlob = new Blob(blobParts, { type: 'application/mbox' });
+                const url = URL.createObjectURL(finalBlob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 1000);
+                
+                addLog(`Download started: ${filename}`);
+                updateProgress(100, 'Downloading...');
+                
+                setTimeout(() => {
+                    showProgress(false);
+                }, 1000);
+                
+            } catch (error) {
+                addLog(`Download error: ${error.message}`, 'error');
+                updateProgress(100, 'Error!');
+                setTimeout(() => showProgress(false), 2000);
+            }
+        }
+
+        // Event Listeners
+        processBtn.addEventListener('click', processMbox);
+        
+        downloadSentBtn.addEventListener('click', () => {
+            downloadCategory('sent', 'sent.mbox');
+        });
+
+        downloadReceivedBtn.addEventListener('click', () => {
+            downloadCategory('received', 'received.mbox');
+        });
+
+        downloadSpamBtn.addEventListener('click', () => {
+            downloadCategory('spam', 'spam.mbox');
+        });
+
+        restartBtn.addEventListener('click', () => {
+            currentFile = null;
+            messageBoundaries = { sent: [], received: [], spam: [] };
+            emailInput.value = '';
+            fileInput.value = '';
+            fileText.textContent = 'Drop .mbox file or click to select';
+            fileInfo.style.display = 'none';
+            showResults(false);
+            updateButtonState();
+            addLog('Ready for new file');
+        });
+
+        // Initialize
+        updateButtonState();
+        addLog('Mbox Splitter ready');
+    </script>
+</body>
+</html>
