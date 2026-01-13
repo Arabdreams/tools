@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bulk Messenger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 40px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .section {
+            background: #111;
+            border: 1px solid #333;
+            padding: 30px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .section:hover {
+            border-color: #666;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 300;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        textarea, input {
+            width: 100%;
+            background: #000;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #fff;
+        }
+
+        textarea {
+            min-height: 150px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .input-group input {
+            flex: 1;
+        }
+
+        button {
+            width: 100%;
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .progress {
+            margin-top: 20px;
+            padding: 20px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            display: none;
+        }
+
+        .progress.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 2px;
+            background: #222;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #fff;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        details {
+            margin-top: 20px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+        }
+
+        summary {
+            padding: 15px;
+            cursor: pointer;
+            font-weight: 300;
+            letter-spacing: 1px;
+            transition: background 0.3s;
+        }
+
+        summary:hover {
+            background: #111;
+        }
+
+        .dropdown-content {
+            padding: 20px;
+            border-top: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WHATSAPP BULK</h1>
+        
+        <div class="section">
+            <label>NUMBERS (One per line)</label>
+            <textarea id="numbers" placeholder="Paste numbers here...
+One number per line"></textarea>
+            
+            <label style="margin-top: 20px;">MESSAGE CONTENT</label>
+            <textarea id="message" placeholder="Your message here..."></textarea>
+            
+            <div class="input-group" style="margin-top: 20px;">
+                <input type="text" id="countryCode" placeholder="Country Code (e.g., 966)" value="966">
+                <input type="text" id="prefix" placeholder="Prefix (optional, e.g., +)">
+            </div>
+            
+            <button id="startBtn" onclick="startSending()">START SENDING</button>
+            
+            <div class="progress" id="progress">
+                <div id="progressText">Processing: 0 / 0</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="currentNumber" style="margin-top: 10px; color: #666;"></div>
+            </div>
+        </div>
+
+        <details>
+            <summary>NUMBER FORMATTER</summary>
+            <div class="dropdown-content">
+                <label>PASTE NUMBERS TO CLEAN</label>
+                <textarea id="dirtyNumbers" placeholder="Paste numbers with hyphens, spaces, etc..."></textarea>
+                
+                <div class="input-group" style="margin-top: 15px;">
+                    <input type="text" id="formatCountryCode" placeholder="Country Code" value="966">
+                    <input type="text" id="formatPrefix" placeholder="Prefix (optional)">
+                </div>
+                
+                <button onclick="formatNumbers()">FORMAT NUMBERS</button>
+                
+                <label style="margin-top: 20px;">CLEANED NUMBERS</label>
+                <textarea id="cleanNumbers" placeholder="Formatted numbers will appear here..." readonly></textarea>
+            </div>
+        </details>
+
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        let isSending = false;
+        let currentIndex = 0;
+        let totalNumbers = 0;
+
+        function cleanNumber(number, countryCode, prefix) {
+            // Remove all non-digit characters
+            let cleaned = number.replace(/\D/g, '');
+            
+            // Check if it already has the country code
+            if (!cleaned.startsWith(countryCode)) {
+                cleaned = countryCode + cleaned;
+            }
+            
+            // Add prefix if provided
+            if (prefix) {
+                cleaned = prefix + cleaned;
+            }
+            
+            return cleaned;
+        }
+
+        function formatNumbers() {
+            const dirtyNumbers = document.getElementById('dirtyNumbers').value;
+            const countryCode = document.getElementById('formatCountryCode').value.trim();
+            const prefix = document.getElementById('formatPrefix').value.trim();
+            
+            if (!dirtyNumbers.trim()) {
+                alert('Please paste numbers to format');
+                return;
+            }
+            
+            const lines = dirtyNumbers.split('\n').filter(line => line.trim());
+            const formatted = lines.map(line => cleanNumber(line, countryCode, prefix));
+            
+            document.getElementById('cleanNumbers').value = formatted.join('\n');
+        }
+
+        async function startSending() {
+            if (isSending) return;
+            
+            const numbersText = document.getElementById('numbers').value;
+            const message = document.getElementById('message').value;
+            const countryCode = document.getElementById('countryCode').value.trim();
+            const prefix = document.getElementById('prefix').value.trim();
+            
+            if (!numbersText.trim()) {
+                alert('Please enter numbers');
+                return;
+            }
+            
+            if (!message.trim()) {
+                alert('Please enter a message');
+                return;
+            }
+            
+            const numbers = numbersText.split('\n').filter(line => line.trim());
+            totalNumbers = numbers.length;
+            currentIndex = 0;
+            isSending = true;
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('progress').classList.add('active');
+            
+            for (let i = 0; i < numbers.length; i++) {
+                if (!isSending) break;
+                
+                currentIndex = i + 1;
+                const cleanedNumber = cleanNumber(numbers[i], countryCode, prefix);
+                
+                updateProgress(currentIndex, totalNumbers, cleanedNumber);
+                
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://wa.me/${cleanedNumber}?text=${encodedMessage}`;
+                
+                // Open WhatsApp
+                window.open(whatsappUrl, '_blank');
+                
+                // Wait 5 seconds before next number
+                if (i < numbers.length - 1) {
+                    await sleep(5000);
+                }
+            }
+            
+            isSending = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('status').textContent = 'COMPLETED';
+            
+            setTimeout(() => {
+                document.getElementById('progress').classList.remove('active');
+                document.getElementById('status').textContent = '';
+            }, 3000);
+        }
+
+        function updateProgress(current, total, number) {
+            const percentage = (current / total) * 100;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `Processing: ${current} / ${total}`;
+            document.getElementById('currentNumber').textContent = `Current: ${number}`;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
