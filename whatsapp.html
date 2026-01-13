@@ -12,117 +12,137 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #000;
-            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: #fbfbfd;
+            color: #1d1d1f;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            padding: 60px 20px;
+            line-height: 1.6;
         }
 
         .container {
-            max-width: 600px;
-            width: 100%;
+            max-width: 980px;
+            margin: 0 auto;
         }
 
         h1 {
-            font-size: 2rem;
-            font-weight: 300;
-            margin-bottom: 40px;
+            font-size: 56px;
+            font-weight: 600;
+            margin-bottom: 10px;
             text-align: center;
-            letter-spacing: 2px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 28px;
+            font-weight: 400;
+            color: #6e6e73;
+            text-align: center;
+            margin-bottom: 60px;
         }
 
         .section {
-            background: #111;
-            border: 1px solid #333;
-            padding: 30px;
-            margin-bottom: 20px;
-            transition: border-color 0.3s;
+            background: #fff;
+            border-radius: 18px;
+            padding: 48px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
         }
 
-        .section:hover {
-            border-color: #666;
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: #1d1d1f;
         }
 
         label {
             display: block;
-            margin-bottom: 10px;
-            font-weight: 300;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #6e6e73;
+            letter-spacing: 0.3px;
         }
 
         textarea, input {
             width: 100%;
-            background: #000;
-            border: 1px solid #333;
-            color: #fff;
-            padding: 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
+            background: #f5f5f7;
+            border: 1px solid #d2d2d7;
+            border-radius: 12px;
+            color: #1d1d1f;
+            padding: 16px 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            font-size: 17px;
             resize: vertical;
-            transition: border-color 0.3s;
+            transition: all 0.2s ease;
         }
 
         textarea:focus, input:focus {
             outline: none;
-            border-color: #fff;
+            background: #fff;
+            border-color: #0071e3;
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
         }
 
         textarea {
-            min-height: 150px;
+            min-height: 140px;
         }
 
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
         }
 
-        .input-group input {
-            flex: 1;
+        .field-group {
+            margin-bottom: 24px;
         }
 
         button {
             width: 100%;
-            background: #fff;
-            color: #000;
+            background: #0071e3;
+            color: #fff;
             border: none;
-            padding: 15px;
-            font-size: 1rem;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 17px;
             font-weight: 500;
-            letter-spacing: 2px;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
+            transition: all 0.2s ease;
+            margin-top: 24px;
+            letter-spacing: 0.2px;
         }
 
         button:hover {
-            background: #000;
-            color: #fff;
-            border: 1px solid #fff;
+            background: #0077ed;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         button:disabled {
-            opacity: 0.3;
+            opacity: 0.4;
             cursor: not-allowed;
+            transform: none;
         }
 
         .status {
             text-align: center;
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #999;
+            margin-top: 24px;
+            font-size: 15px;
+            color: #86868b;
         }
 
         .progress {
-            margin-top: 20px;
-            padding: 20px;
-            background: #0a0a0a;
-            border: 1px solid #222;
+            margin-top: 32px;
+            padding: 24px;
+            background: #f5f5f7;
+            border-radius: 12px;
             display: none;
         }
 
@@ -130,88 +150,166 @@
             display: block;
         }
 
+        .progress-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1d1d1f;
+            margin-bottom: 12px;
+        }
+
         .progress-bar {
             width: 100%;
-            height: 2px;
-            background: #222;
-            margin: 10px 0;
+            height: 4px;
+            background: #d2d2d7;
+            border-radius: 2px;
             overflow: hidden;
+            margin: 16px 0;
         }
 
         .progress-fill {
             height: 100%;
-            background: #fff;
+            background: #0071e3;
             width: 0%;
-            transition: width 0.3s;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .current-number {
+            font-size: 14px;
+            color: #86868b;
+            margin-top: 8px;
         }
 
         details {
-            margin-top: 20px;
-            border: 1px solid #333;
-            background: #0a0a0a;
+            margin-top: 24px;
         }
 
         summary {
-            padding: 15px;
+            padding: 20px 24px;
             cursor: pointer;
-            font-weight: 300;
-            letter-spacing: 1px;
-            transition: background 0.3s;
+            font-weight: 500;
+            font-size: 17px;
+            background: #fff;
+            border-radius: 12px;
+            list-style: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
         }
 
         summary:hover {
-            background: #111;
+            background: #f5f5f7;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        summary::after {
+            content: '+';
+            float: right;
+            font-size: 24px;
+            font-weight: 300;
+            color: #0071e3;
+            transition: transform 0.2s ease;
+        }
+
+        details[open] summary::after {
+            transform: rotate(45deg);
         }
 
         .dropdown-content {
-            padding: 20px;
-            border-top: 1px solid #333;
+            padding: 32px 24px;
+            background: #fff;
+            border-radius: 0 0 12px 12px;
+            margin-top: -12px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 40px;
+            }
+
+            .subtitle {
+                font-size: 21px;
+            }
+
+            .section {
+                padding: 32px 24px;
+            }
+
+            .input-row {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>WHATSAPP BULK</h1>
+        <h1>WhatsApp.</h1>
+        <div class="subtitle">Send messages to multiple contacts seamlessly.</div>
         
         <div class="section">
-            <label>NUMBERS (One per line)</label>
-            <textarea id="numbers" placeholder="Paste numbers here...
-One number per line"></textarea>
+            <div class="section-title">Bulk Messaging</div>
             
-            <label style="margin-top: 20px;">MESSAGE CONTENT</label>
-            <textarea id="message" placeholder="Your message here..."></textarea>
-            
-            <div class="input-group" style="margin-top: 20px;">
-                <input type="text" id="countryCode" placeholder="Country Code (e.g., 966)" value="966">
-                <input type="text" id="prefix" placeholder="Prefix (optional, e.g., +)">
+            <div class="field-group">
+                <label>PHONE NUMBERS</label>
+                <textarea id="numbers" placeholder="Paste numbers here, one per line"></textarea>
             </div>
             
-            <button id="startBtn" onclick="startSending()">START SENDING</button>
+            <div class="field-group">
+                <label>MESSAGE</label>
+                <textarea id="message" placeholder="Type your message"></textarea>
+            </div>
+            
+            <div class="input-row">
+                <div>
+                    <label>COUNTRY CODE</label>
+                    <input type="text" id="countryCode" placeholder="e.g., 966" value="966">
+                </div>
+                <div>
+                    <label>PREFIX (OPTIONAL)</label>
+                    <input type="text" id="prefix" placeholder="e.g., +">
+                </div>
+            </div>
+            
+            <button id="startBtn" onclick="startSending()">Start Sending</button>
             
             <div class="progress" id="progress">
-                <div id="progressText">Processing: 0 / 0</div>
+                <div class="progress-text" id="progressText">Processing: 0 / 0</div>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <div id="currentNumber" style="margin-top: 10px; color: #666;"></div>
+                <div class="current-number" id="currentNumber"></div>
             </div>
         </div>
 
         <details>
-            <summary>NUMBER FORMATTER</summary>
+            <summary>Number Formatter</summary>
             <div class="dropdown-content">
-                <label>PASTE NUMBERS TO CLEAN</label>
-                <textarea id="dirtyNumbers" placeholder="Paste numbers with hyphens, spaces, etc..."></textarea>
-                
-                <div class="input-group" style="margin-top: 15px;">
-                    <input type="text" id="formatCountryCode" placeholder="Country Code" value="966">
-                    <input type="text" id="formatPrefix" placeholder="Prefix (optional)">
+                <div class="field-group">
+                    <label>UNFORMATTED NUMBERS</label>
+                    <textarea id="dirtyNumbers" placeholder="Paste numbers with spaces, hyphens, or other characters"></textarea>
                 </div>
                 
-                <button onclick="formatNumbers()">FORMAT NUMBERS</button>
+                <div class="input-row">
+                    <div>
+                        <label>COUNTRY CODE</label>
+                        <input type="text" id="formatCountryCode" placeholder="e.g., 966" value="966">
+                    </div>
+                    <div>
+                        <label>PREFIX (OPTIONAL)</label>
+                        <input type="text" id="formatPrefix" placeholder="e.g., +">
+                    </div>
+                </div>
                 
-                <label style="margin-top: 20px;">CLEANED NUMBERS</label>
-                <textarea id="cleanNumbers" placeholder="Formatted numbers will appear here..." readonly></textarea>
+                <button onclick="formatNumbers()">Format Numbers</button>
+                
+                <div class="field-group" style="margin-top: 24px;">
+                    <label>FORMATTED NUMBERS</label>
+                    <textarea id="cleanNumbers" placeholder="Cleaned numbers will appear here" readonly></textarea>
+                </div>
             </div>
         </details>
 
@@ -224,15 +322,12 @@ One number per line"></textarea>
         let totalNumbers = 0;
 
         function cleanNumber(number, countryCode, prefix) {
-            // Remove all non-digit characters
             let cleaned = number.replace(/\D/g, '');
             
-            // Check if it already has the country code
             if (!cleaned.startsWith(countryCode)) {
                 cleaned = countryCode + cleaned;
             }
             
-            // Add prefix if provided
             if (prefix) {
                 cleaned = prefix + cleaned;
             }
@@ -293,10 +388,8 @@ One number per line"></textarea>
                 const encodedMessage = encodeURIComponent(message);
                 const whatsappUrl = `https://wa.me/${cleanedNumber}?text=${encodedMessage}`;
                 
-                // Open WhatsApp
                 window.open(whatsappUrl, '_blank');
                 
-                // Wait 5 seconds before next number
                 if (i < numbers.length - 1) {
                     await sleep(5000);
                 }
@@ -304,7 +397,7 @@ One number per line"></textarea>
             
             isSending = false;
             document.getElementById('startBtn').disabled = false;
-            document.getElementById('status').textContent = 'COMPLETED';
+            document.getElementById('status').textContent = 'All messages sent successfully';
             
             setTimeout(() => {
                 document.getElementById('progress').classList.remove('active');
@@ -316,7 +409,7 @@ One number per line"></textarea>
             const percentage = (current / total) * 100;
             document.getElementById('progressFill').style.width = percentage + '%';
             document.getElementById('progressText').textContent = `Processing: ${current} / ${total}`;
-            document.getElementById('currentNumber').textContent = `Current: ${number}`;
+            document.getElementById('currentNumber').textContent = `Current number: ${number}`;
         }
 
         function sleep(ms) {
