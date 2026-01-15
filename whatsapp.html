@@ -13,8 +13,8 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-            background: #fbfbfd;
-            color: #1d1d1f;
+            background: #1d1d1f;
+            color: #fbfbfd;
             min-height: 100vh;
             padding: 60px 20px;
             line-height: 1.6;
@@ -36,24 +36,25 @@
         .subtitle {
             font-size: 28px;
             font-weight: 400;
-            color: #6e6e73;
+            color: #86868b;
             text-align: center;
             margin-bottom: 60px;
         }
 
         .section {
-            background: #fff;
+            background: #000;
             border-radius: 18px;
             padding: 48px;
             margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.04);
+            border: 1px solid #333;
         }
 
         .section-title {
             font-size: 24px;
             font-weight: 600;
             margin-bottom: 24px;
-            color: #1d1d1f;
+            color: #f5f5f7;
         }
 
         label {
@@ -61,16 +62,16 @@
             margin-bottom: 8px;
             font-weight: 500;
             font-size: 14px;
-            color: #6e6e73;
+            color: #86868b;
             letter-spacing: 0.3px;
         }
 
         textarea, input {
             width: 100%;
-            background: #f5f5f7;
-            border: 1px solid #d2d2d7;
+            background: #333;
+            border: 1px solid #444;
             border-radius: 12px;
-            color: #1d1d1f;
+            color: #f5f5f7;
             padding: 16px 20px;
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
             font-size: 17px;
@@ -80,7 +81,7 @@
 
         textarea:focus, input:focus {
             outline: none;
-            background: #fff;
+            background: #222;
             border-color: #0071e3;
             box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
         }
@@ -89,11 +90,14 @@
             min-height: 140px;
         }
 
-        .input-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
+        .button-group {
+            display: flex;
+            gap: 12px;
             margin-top: 24px;
+        }
+
+        .button-group button {
+            flex: 1;
         }
 
         .field-group {
@@ -101,7 +105,6 @@
         }
 
         button {
-            width: 100%;
             background: #0071e3;
             color: #fff;
             border: none;
@@ -111,7 +114,6 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
-            margin-top: 24px;
             letter-spacing: 0.2px;
         }
 
@@ -131,6 +133,15 @@
             transform: none;
         }
 
+        .stop-btn {
+            background: #d32f2f;
+        }
+
+        .stop-btn:hover {
+            background: #e53935;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+        }
+
         .status {
             text-align: center;
             margin-top: 24px;
@@ -141,9 +152,10 @@
         .progress {
             margin-top: 32px;
             padding: 24px;
-            background: #f5f5f7;
+            background: #333;
             border-radius: 12px;
             display: none;
+            border: 1px solid #444;
         }
 
         .progress.active {
@@ -153,14 +165,14 @@
         .progress-text {
             font-size: 15px;
             font-weight: 500;
-            color: #1d1d1f;
+            color: #f5f5f7;
             margin-bottom: 12px;
         }
 
         .progress-bar {
             width: 100%;
             height: 4px;
-            background: #d2d2d7;
+            background: #444;
             border-radius: 2px;
             overflow: hidden;
             margin: 16px 0;
@@ -189,11 +201,13 @@
             cursor: pointer;
             font-weight: 500;
             font-size: 17px;
-            background: #fff;
+            background: #000;
             border-radius: 12px;
             list-style: none;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 2px 12px rgba(255, 255, 255, 0.04);
+            border: 1px solid #333;
+            color: #f5f5f7;
         }
 
         summary::-webkit-details-marker {
@@ -201,9 +215,9 @@
         }
 
         summary:hover {
-            background: #f5f5f7;
+            background: #111;
             transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 16px rgba(255, 255, 255, 0.06);
         }
 
         summary::after {
@@ -221,9 +235,25 @@
 
         .dropdown-content {
             padding: 32px 24px;
-            background: #fff;
+            background: #000;
             border-radius: 0 0 12px 12px;
             margin-top: -12px;
+            border: 1px solid #333;
+            border-top: none;
+        }
+
+        .instruction {
+            background: rgba(0, 113, 227, 0.1);
+            border: 1px solid rgba(0, 113, 227, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #64b5f6;
+        }
+
+        .instruction strong {
+            color: #bbdefb;
         }
 
         @media (max-width: 768px) {
@@ -239,8 +269,8 @@
                 padding: 32px 24px;
             }
 
-            .input-row {
-                grid-template-columns: 1fr;
+            .button-group {
+                flex-direction: column;
             }
         }
     </style>
@@ -253,9 +283,20 @@
         <div class="section">
             <div class="section-title">Bulk Messaging</div>
             
+            <div class="instruction">
+                <strong>Important:</strong> Before starting, make sure to:<br>
+                1. <strong>Allow popups</strong> in your browser for this site<br>
+                2. <strong>Keep WhatsApp Web</strong> open in another tab<br>
+                3. <strong>Don't close</strong> the popup windows automatically
+            </div>
+            
             <div class="field-group">
-                <label>PHONE NUMBERS</label>
-                <textarea id="numbers" placeholder="Paste numbers here, one per line"></textarea>
+                <label>PHONE NUMBERS (one per line)</label>
+                <textarea id="numbers" placeholder="Paste numbers here, one per line
+Example:
+966501234567
+966551112233
+966581234567"></textarea>
             </div>
             
             <div class="field-group">
@@ -263,18 +304,10 @@
                 <textarea id="message" placeholder="Type your message"></textarea>
             </div>
             
-            <div class="input-row">
-                <div>
-                    <label>COUNTRY CODE</label>
-                    <input type="text" id="countryCode" placeholder="e.g., 966" value="966">
-                </div>
-                <div>
-                    <label>PREFIX (OPTIONAL)</label>
-                    <input type="text" id="prefix" placeholder="e.g., +">
-                </div>
+            <div class="button-group">
+                <button id="startBtn" onclick="startSending()">Start Sending</button>
+                <button id="stopBtn" class="stop-btn" onclick="stopSending()" disabled>Stop</button>
             </div>
-            
-            <button id="startBtn" onclick="startSending()">Start Sending</button>
             
             <div class="progress" id="progress">
                 <div class="progress-text" id="progressText">Processing: 0 / 0</div>
@@ -286,29 +319,41 @@
         </div>
 
         <details>
-            <summary>Number Formatter</summary>
+            <summary>Number Formatter & Deduplicator</summary>
             <div class="dropdown-content">
                 <div class="field-group">
                     <label>UNFORMATTED NUMBERS</label>
-                    <textarea id="dirtyNumbers" placeholder="Paste numbers with spaces, hyphens, or other characters"></textarea>
+                    <textarea id="dirtyNumbers" placeholder="Paste numbers with spaces, hyphens, or other characters
+Example:
++966-50-123-4567
+050 111 2233
+00966581234567
+966501234567 (duplicate)
+0501234567"></textarea>
                 </div>
                 
-                <div class="input-row">
-                    <div>
-                        <label>COUNTRY CODE</label>
-                        <input type="text" id="formatCountryCode" placeholder="e.g., 966" value="966">
-                    </div>
-                    <div>
-                        <label>PREFIX (OPTIONAL)</label>
-                        <input type="text" id="formatPrefix" placeholder="e.g., +">
+                <div class="field-group">
+                    <label>FORMAT OPTIONS</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px;">
+                        <div>
+                            <label>COUNTRY CODE</label>
+                            <input type="text" id="formatCountryCode" placeholder="e.g., 966" value="966">
+                        </div>
+                        <div>
+                            <label>PREFIX (OPTIONAL)</label>
+                            <input type="text" id="formatPrefix" placeholder="e.g., +">
+                        </div>
                     </div>
                 </div>
                 
-                <button onclick="formatNumbers()">Format Numbers</button>
+                <div class="button-group">
+                    <button onclick="formatAndDeduplicate()">Format & Deduplicate</button>
+                    <button onclick="copyFormatted()">Copy Formatted</button>
+                </div>
                 
                 <div class="field-group" style="margin-top: 24px;">
-                    <label>FORMATTED NUMBERS</label>
-                    <textarea id="cleanNumbers" placeholder="Cleaned numbers will appear here" readonly></textarea>
+                    <label>FORMATTED NUMBERS (Removed duplicates: <span id="duplicateCount">0</span>)</label>
+                    <textarea id="cleanNumbers" placeholder="Cleaned and deduplicated numbers will appear here" readonly></textarea>
                 </div>
             </div>
         </details>
@@ -320,11 +365,17 @@
         let isSending = false;
         let currentIndex = 0;
         let totalNumbers = 0;
+        let numbersArray = [];
+        let stopSendingFlag = false;
 
         function cleanNumber(number, countryCode, prefix) {
             let cleaned = number.replace(/\D/g, '');
             
-            if (!cleaned.startsWith(countryCode)) {
+            if (cleaned.startsWith('0')) {
+                cleaned = cleaned.substring(1);
+            }
+            
+            if (countryCode && !cleaned.startsWith(countryCode)) {
                 cleaned = countryCode + cleaned;
             }
             
@@ -335,7 +386,7 @@
             return cleaned;
         }
 
-        function formatNumbers() {
+        function formatAndDeduplicate() {
             const dirtyNumbers = document.getElementById('dirtyNumbers').value;
             const countryCode = document.getElementById('formatCountryCode').value.trim();
             const prefix = document.getElementById('formatPrefix').value.trim();
@@ -346,9 +397,36 @@
             }
             
             const lines = dirtyNumbers.split('\n').filter(line => line.trim());
-            const formatted = lines.map(line => cleanNumber(line, countryCode, prefix));
+            const formattedSet = new Set();
+            const duplicates = new Set();
             
-            document.getElementById('cleanNumbers').value = formatted.join('\n');
+            lines.forEach(line => {
+                const formatted = cleanNumber(line, countryCode, prefix);
+                if (formatted) {
+                    if (formattedSet.has(formatted)) {
+                        duplicates.add(formatted);
+                    } else {
+                        formattedSet.add(formatted);
+                    }
+                }
+            });
+            
+            const formattedArray = Array.from(formattedSet);
+            document.getElementById('cleanNumbers').value = formattedArray.join('\n');
+            document.getElementById('duplicateCount').textContent = duplicates.size;
+        }
+
+        function copyFormatted() {
+            const cleanNumbers = document.getElementById('cleanNumbers');
+            cleanNumbers.select();
+            cleanNumbers.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            
+            const originalText = document.getElementById('status').textContent;
+            document.getElementById('status').textContent = 'Copied formatted numbers to clipboard!';
+            setTimeout(() => {
+                document.getElementById('status').textContent = originalText;
+            }, 2000);
         }
 
         async function startSending() {
@@ -356,8 +434,6 @@
             
             const numbersText = document.getElementById('numbers').value;
             const message = document.getElementById('message').value;
-            const countryCode = document.getElementById('countryCode').value.trim();
-            const prefix = document.getElementById('prefix').value.trim();
             
             if (!numbersText.trim()) {
                 alert('Please enter numbers');
@@ -369,40 +445,63 @@
                 return;
             }
             
-            const numbers = numbersText.split('\n').filter(line => line.trim());
-            totalNumbers = numbers.length;
+            numbersArray = numbersText.split('\n')
+                .filter(line => line.trim())
+                .map(num => num.trim());
+            
+            totalNumbers = numbersArray.length;
             currentIndex = 0;
             isSending = true;
+            stopSendingFlag = false;
             
             document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
             document.getElementById('progress').classList.add('active');
+            document.getElementById('status').textContent = '';
             
-            for (let i = 0; i < numbers.length; i++) {
-                if (!isSending) break;
+            for (let i = 0; i < numbersArray.length; i++) {
+                if (stopSendingFlag) {
+                    document.getElementById('status').textContent = 'Stopped by user';
+                    break;
+                }
                 
                 currentIndex = i + 1;
-                const cleanedNumber = cleanNumber(numbers[i], countryCode, prefix);
+                const currentNumber = numbersArray[i];
                 
-                updateProgress(currentIndex, totalNumbers, cleanedNumber);
+                updateProgress(currentIndex, totalNumbers, currentNumber);
                 
                 const encodedMessage = encodeURIComponent(message);
-                const whatsappUrl = `https://wa.me/${cleanedNumber}?text=${encodedMessage}`;
+                const whatsappUrl = `https://wa.me/${currentNumber}?text=${encodedMessage}`;
                 
                 window.open(whatsappUrl, '_blank');
                 
-                if (i < numbers.length - 1) {
+                if (i < numbersArray.length - 1 && !stopSendingFlag) {
                     await sleep(5000);
                 }
             }
             
             isSending = false;
             document.getElementById('startBtn').disabled = false;
-            document.getElementById('status').textContent = 'All messages sent successfully';
+            document.getElementById('stopBtn').disabled = true;
             
-            setTimeout(() => {
-                document.getElementById('progress').classList.remove('active');
-                document.getElementById('status').textContent = '';
-            }, 3000);
+            if (!stopSendingFlag) {
+                document.getElementById('status').textContent = 'All messages sent successfully';
+                
+                setTimeout(() => {
+                    document.getElementById('progress').classList.remove('active');
+                    document.getElementById('status').textContent = '';
+                }, 3000);
+            }
+        }
+
+        function stopSending() {
+            if (isSending) {
+                stopSendingFlag = true;
+                isSending = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('status').textContent = 'Stopping...';
+            }
         }
 
         function updateProgress(current, total, number) {
