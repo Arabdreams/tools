@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdSpace Premium Display</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --accent: #f59e0b;
+            --bg-dark: #0f172a;
+            --text-light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f1f5f9;
+            color: #334155;
+            overflow-x: hidden;
+        }
+
+        /* ===========================
+           VIEW 1: ADMIN DASHBOARD
+           =========================== */
+        #directory-view {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 3rem;
+            color: var(--bg-dark);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e2e8f0;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 160px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 6px; height: 100%;
+        }
+        .card.cafe::before { background: #d97706; }
+        .card.gym::before { background: #dc2626; }
+        .card.studio::before { background: #7c3aed; }
+        .card.public::before { background: #059669; }
+
+        .card-icon { font-size: 2rem; margin-bottom: 10px; }
+        .card h3 { margin: 0; font-family: 'Oswald', sans-serif; font-size: 1.5rem; }
+        .card span { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; font-weight: 600; }
+        
+        .launch-btn {
+            margin-top: auto;
+            align-self: flex-start;
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* ===========================
+           VIEW 2: THE AD PLAYER
+           =========================== */
+        #ad-player-view {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            color: white;
+            overflow: hidden;
+        }
+
+        /* Background Image Layer with Ken Burns Effect */
+        #bg-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.6;
+            transition: opacity 1s ease-in-out;
+            transform-origin: center;
+        }
+
+        .ken-burns {
+            animation: zoomPan 15s infinite alternate linear;
+        }
+
+        /* Dark Overlay Gradient */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.2) 100%);
+            z-index: 1;
+        }
+
+        /* Content Layer */
+        .content-layer {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 10%;
+            max-width: 600px;
+        }
+
+        /* Typography & Animations */
+        .ad-tag {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 50px;
+            display: inline-block;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.3);
+            opacity: 0; /* Animated in */
+        }
+
+        .ad-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 5rem;
+            line-height: 1.1;
+            margin: 0 0 20px 0;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .ad-desc {
+            font-size: 1.5rem;
+            font-weight: 300;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .price-badge {
+            font-size: 3rem;
+            color: var(--accent);
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: block;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        /* Animations */
+        .animate-in .ad-tag { animation: fadeIn 0.8s 0.2s forwards; }
+        .animate-in .ad-title { animation: slideUp 0.8s 0.4s cubic-bezier(0.2, 1, 0.3, 1) forwards; }
+        .animate-in .price-badge { animation: popIn 0.6s 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-in .ad-desc { animation: slideUp 0.8s 0.8s cubic-bezier(0.2, 1, 0.3, 1) forwards; }
+
+        @keyframes zoomPan {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+        }
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes popIn { to { opacity: 1; transform: scale(1); } }
+
+        /* Progress Bar */
+        .progress-container {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 10px;
+            background: rgba(255,255,255,0.1);
+            z-index: 10;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+        }
+        .filling { animation: fillBar 10s linear forwards; }
+
+        @keyframes fillBar { from { width: 0%; } to { width: 100%; } }
+
+        /* Branding Corner */
+        .screen-id {
+            position: absolute;
+            top: 30px; right: 30px;
+            z-index: 10;
+            text-align: right;
+            opacity: 0.7;
+        }
+        .screen-id h4 { margin: 0; font-family: 'Oswald', sans-serif; letter-spacing: 1px; }
+        .screen-id p { margin: 0; font-size: 0.8rem; }
+
+    </style>
+</head>
+<body>
+
+    <div id="directory-view">
+        <div class="header">
+            <h1>AdSpace Manager</h1>
+            <p>Select a location to deploy digital signage interface</p>
+        </div>
+        <div class="grid" id="shop-grid">
+            </div>
+    </div>
+
+    <div id="ad-player-view">
+        <div id="bg-layer" class="ken-burns"></div>
+        <div class="overlay"></div>
+
+        <div class="screen-id">
+            <h4 id="display-location">LOCATION</h4>
+            <p id="display-sector">System Active</p>
+        </div>
+
+        <div class="content-layer" id="content-container">
+            <span class="ad-tag" id="ad-tag">Offer</span>
+            <span class="price-badge" id="ad-highlight"></span>
+            <h1 class="ad-title" id="ad-headline"></h1>
+            <p class="ad-desc" id="ad-body"></p>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-fill" id="progress-bar"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+
+        const shops = [
+            { id: 1, name: "Urban Brew", type: "cafe", icon: "☕" },
+            { id: 2, name: "Bean Theory", type: "cafe", icon: "🍵" },
+            { id: 3, name: "Morning Ritual", type: "cafe", icon: "🥐" },
+            { id: 4, name: "Spartan Gym", type: "gym", icon: "🏋️" },
+            { id: 5, name: "Pulse Fitness", type: "gym", icon: "🧘" },
+            { id: 6, name: "Pixel Studio", type: "studio", icon: "📷" },
+            { id: 7, name: "SoundBox", type: "studio", icon: "🎤" },
+            { id: 8, name: "Metro Station", type: "public", icon: "🚇" },
+            { id: 9, name: "City Park", type: "public", icon: "🌳" },
+            { id: 10, name: "Art Gallery", type: "public", icon: "🎨" }
+        ];
+
+        // High Quality Ad Data (Using Unsplash Images)
+        const ads = {
+            cafe: [
+                { 
+                    tag: "Morning Special", 
+                    highlight: "50% OFF", 
+                    title: "Start Your Day Right", 
+                    body: "Premium roasted Colombian beans paired with a fresh artisan croissant.", 
+                    img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=2000&auto=format&fit=crop" 
+                },
+                { 
+                    tag: "New Arrival", 
+                    highlight: "$4.99", 
+                    title: "Iced Matcha Latte", 
+                    body: "Experience the smooth, creamy taste of ceremonial grade matcha.", 
+                    img: "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?q=80&w=2000&auto=format&fit=crop" 
+                },
+                { 
+                    tag: "Connectivity", 
+                    highlight: "FREE WIFI", 
+                    title: "Work From Here", 
+                    body: "Blazing fast gigabit internet for all purchasing customers.", 
+                    img: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2000&auto=format&fit=crop" 
+                }
+            ],
+            gym: [
+                { 
+                    tag: "Membership", 
+                    highlight: "$0 Down", 
+                    title: "Join The Movement", 
+                    body: "Sign up today and get your first month completely on the house.", 
+                    img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2000&auto=format&fit=crop" 
+                },
+                { 
+                    tag: "Fuel Up", 
+                    highlight: "Protein+", 
+                    title: "Post-Workout Recovery", 
+                    body: "Try our new Chocolate Peanut Butter whey shake at the juice bar.", 
+                    img: "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?q=80&w=2000&auto=format&fit=crop" 
+                },
+                { 
+                    tag: "Classes", 
+                    highlight: "HIIT", 
+                    title: "Push Your Limits", 
+                    body: "High Intensity Interval Training starts every hour on the hour.", 
+                    img: "https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?q=80&w=2000&auto=format&fit=crop" 
+                }
+            ],
+            studio: [
+                { 
+                    tag: "Gear Rental", 
+                    highlight: "New Gear", 
+                    title: "Sony Alpha Series", 
+                    body: "The latest lenses and bodies are now available for daily rental.", 
+                    img: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=2000&auto=format&fit=crop" 
+                },
+                { 
+                    tag: "Workshop", 
+                    highlight: "Sept 12", 
+                    title: "Mastering Lighting", 
+                    body: "Join our masterclass on three-point lighting techniques.", 
+                    img: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=2000&auto=format&fit=crop" 
+                }
+            ],
+            public: [
+                { 
+                    tag: "Civic Duty", 
+                    highlight: "Green City", 
+                    title: "Keep It Clean", 
+                    body: "Please use the color-coded bins for recycling and general waste.", 
+                    img: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=2000&auto=format&fit=crop" 
+                },
+                { 
+                    tag: "Event", 
+                    highlight: "Free Entry", 
+                    title: "Jazz in the Park", 
+                    body: "Live music every Friday evening starting at 6:00 PM.", 
+                    img: "https://images.unsplash.com/photo-1514525253440-b393452e8d26?q=80&w=2000&auto=format&fit=crop" 
+                }
+            ]
+        };
+
+        // --- LOGIC ---
+
+        const params = new URLSearchParams(window.location.search);
+        const type = params.get('type');
+        const locName = params.get('name');
+
+        if (!type) {
+            // RENDER DIRECTORY
+            const grid = document.getElementById('shop-grid');
+            shops.forEach(shop => {
+                const el = document.createElement('a');
+                el.href = `?type=${shop.type}&name=${encodeURIComponent(shop.name)}`;
+                el.target = "_blank";
+                el.className = `card ${shop.type}`;
+                el.innerHTML = `
+                    <div class="card-icon">${shop.icon}</div>
+                    <div>
+                        <h3>${shop.name}</h3>
+                        <span>${shop.type.toUpperCase()}</span>
+                    </div>
+                    <div class="launch-btn">Launch Player <span>→</span></div>
+                `;
+                grid.appendChild(el);
+            });
+        } else {
+            // RENDER PLAYER
+            document.getElementById('directory-view').style.display = 'none';
+            document.getElementById('ad-player-view').style.display = 'block';
+
+            // Setup Display Info
+            document.getElementById('display-location').textContent = locName;
+            document.getElementById('display-sector').textContent = type.toUpperCase() + " SECTOR ID: 884-X";
+
+            // Ad Rotation Logic
+            const sectorAds = ads[type] || ads.public;
+            let index = 0;
+
+            const bgLayer = document.getElementById('bg-layer');
+            const content = document.getElementById('content-container');
+            const progressBar = document.getElementById('progress-bar');
+
+            // Elements to update
+            const elTag = document.getElementById('ad-tag');
+            const elHigh = document.getElementById('ad-highlight');
+            const elTitle = document.getElementById('ad-headline');
+            const elBody = document.getElementById('ad-body');
+
+            function rotateAd() {
+                // 1. Reset Animations
+                content.classList.remove('animate-in');
+                progressBar.classList.remove('filling');
+                
+                // 2. Short delay for exit transition, then swap data
+                setTimeout(() => {
+                    const currentAd = sectorAds[index];
+
+                    // Swap Text
+                    elTag.textContent = currentAd.tag;
+                    elHigh.textContent = currentAd.highlight;
+                    elTitle.textContent = currentAd.title;
+                    elBody.textContent = currentAd.body;
+
+                    // Swap Image (Preloading handled by browser mostly here for simplicity)
+                    bgLayer.style.backgroundImage = `url('${currentAd.img}')`;
+
+                    // 3. Trigger Entry Animations
+                    void content.offsetWidth; // Force Reflow
+                    content.classList.add('animate-in');
+                    
+                    void progressBar.offsetWidth; // Force Reflow
+                    progressBar.classList.add('filling');
+
+                    // Next Index
+                    index = (index + 1) % sectorAds.length;
+
+                }, 200);
+            }
+
+            rotateAd(); // Start immediately
+            setInterval(rotateAd, 10000); // 10 Seconds
+        }
+
+    </script>
+</body>
+</html>
