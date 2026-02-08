@@ -76,6 +76,9 @@
 
         .message-input {
             min-height: 200px;
+            font-family: inherit;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .toolbar {
@@ -205,6 +208,20 @@
             color: #ffffff;
         }
 
+        .btn-stop {
+            background: #ff3b30;
+            color: #ffffff;
+        }
+
+        .btn-stop:hover {
+            background: #ff2d55;
+        }
+
+        .btn-stop:disabled {
+            background: #d2d2d7;
+            cursor: not-allowed;
+        }
+
         .info-box {
             background: #f5f5f7;
             padding: 20px 24px;
@@ -221,6 +238,10 @@
             text-align: center;
             font-size: 15px;
             display: none;
+        }
+
+        .status.active {
+            display: block;
         }
 
         .status.success {
@@ -295,8 +316,8 @@ user3@example.com"></textarea>
         <div class="section">
             <label class="label">Message</label>
             <div class="toolbar">
-                <button class="toolbar-btn" onclick="formatText('bold')" title="Bold">B</button>
-                <button class="toolbar-btn" onclick="formatText('italic')" title="Italic" style="font-style: italic;">I</button>
+                <button class="toolbar-btn" onclick="formatText('bold')" title="Bold">𝐁</button>
+                <button class="toolbar-btn" onclick="formatText('italic')" title="Italic">𝑰</button>
                 <button class="toolbar-btn" onclick="formatText('underline')" title="Underline" style="text-decoration: underline;">U</button>
                 <button class="toolbar-btn" onclick="formatText('strikethrough')" title="Strikethrough" style="text-decoration: line-through;">S</button>
                 <button class="toolbar-btn" onclick="clearFormatting()" title="Clear Formatting">Clear Format</button>
@@ -332,6 +353,7 @@ Line breaks and formatting will be preserved."></textarea>
 
         <div class="button-group">
             <button class="btn-secondary" onclick="clearAll()">Clear All</button>
+            <button class="btn-stop" id="stopBtn" onclick="stopSending()" disabled>Stop</button>
             <button class="btn-primary" id="sendBtn" onclick="startSending()">Send Messages</button>
         </div>
 
@@ -342,7 +364,8 @@ Line breaks and formatting will be preserved."></textarea>
         let currentIndex = 0;
         let emails = [];
         let isSending = false;
-        let formattedRanges = [];
+        let shouldStop = false;
+        let timeoutId = null;
 
         // Update email count
         document.getElementById('emailList').addEventListener('input', function() {
@@ -350,6 +373,82 @@ Line breaks and formatting will be preserved."></textarea>
             emails = text ? text.split('\n').filter(e => e.trim()) : [];
             document.getElementById('emailCount').textContent = emails.length;
         });
+
+        // Unicode character maps for text formatting (same as ChatGPT/Notion)
+        const unicodeMaps = {
+            bold: {
+                'A': '𝗔', 'B': '𝗕', 'C': '𝗖', 'D': '𝗗', 'E': '𝗘', 'F': '𝗙', 'G': '𝗚', 'H': '𝗛', 'I': '𝗜', 'J': '𝗝',
+                'K': '𝗞', 'L': '𝗟', 'M': '𝗠', 'N': '𝗡', 'O': '𝗢', 'P': '𝗣', 'Q': '𝗤', 'R': '𝗥', 'S': '𝗦', 'T': '𝗧',
+                'U': '𝗨', 'V': '𝗩', 'W': '𝗪', 'X': '𝗫', 'Y': '𝗬', 'Z': '𝗭',
+                'a': '𝗮', 'b': '𝗯', 'c': '𝗰', 'd': '𝗱', 'e': '𝗲', 'f': '𝗳', 'g': '𝗴', 'h': '𝗵', 'i': '𝗶', 'j': '𝗷',
+                'k': '𝗸', 'l': '𝗹', 'm': '𝗺', 'n': '𝗻', 'o': '𝗼', 'p': '𝗽', 'q': '𝗾', 'r': '𝗿', 's': '𝘀', 't': '𝘁',
+                'u': '𝘂', 'v': '𝘃', 'w': '𝘄', 'x': '𝘅', 'y': '𝘆', 'z': '𝘇',
+                '0': '𝟬', '1': '𝟭', '2': '𝟮', '3': '𝟯', '4': '𝟰', '5': '𝟱', '6': '𝟲', '7': '𝟳', '8': '𝟴', '9': '𝟵'
+            },
+            italic: {
+                'A': '𝘈', 'B': '𝘉', 'C': '𝘊', 'D': '𝘋', 'E': '𝘌', 'F': '𝘍', 'G': '𝘎', 'H': '𝘏', 'I': '𝘐', 'J': '𝘑',
+                'K': '𝘒', 'L': '𝘓', 'M': '𝘔', 'N': '𝘕', 'O': '𝘖', 'P': '𝘗', 'Q': '𝘘', 'R': '𝘙', 'S': '𝘚', 'T': '𝘛',
+                'U': '𝘜', 'V': '𝘝', 'W': '𝘞', 'X': '𝘟', 'Y': '𝘠', 'Z': '𝘡',
+                'a': '𝘢', 'b': '𝘣', 'c': '𝘤', 'd': '𝘥', 'e': '𝘦', 'f': '𝘧', 'g': '𝘨', 'h': '𝘩', 'i': '𝘪', 'j': '𝘫',
+                'k': '𝘬', 'l': '𝘭', 'm': '𝘮', 'n': '𝘯', 'o': '𝘰', 'p': '𝘱', 'q': '𝘲', 'r': '𝘳', 's': '𝘴', 't': '𝘵',
+                'u': '𝘶', 'v': '𝘷', 'w': '𝘸', 'x': '𝘹', 'y': '𝘺', 'z': '𝘻'
+            },
+            underline: {
+                'A': 'A̲', 'B': 'B̲', 'C': 'C̲', 'D': 'D̲', 'E': 'E̲', 'F': 'F̲', 'G': 'G̲', 'H': 'H̲', 'I': 'I̲', 'J': 'J̲',
+                'K': 'K̲', 'L': 'L̲', 'M': 'M̲', 'N': 'N̲', 'O': 'O̲', 'P': 'P̲', 'Q': 'Q̲', 'R': 'R̲', 'S': 'S̲', 'T': 'T̲',
+                'U': 'U̲', 'V': 'V̲', 'W': 'W̲', 'X': 'X̲', 'Y': 'Y̲', 'Z': 'Z̲',
+                'a': 'a̲', 'b': 'b̲', 'c': 'c̲', 'd': 'd̲', 'e': 'e̲', 'f': 'f̲', 'g': 'g̲', 'h': 'h̲', 'i': 'i̲', 'j': 'j̲',
+                'k': 'k̲', 'l': 'l̲', 'm': 'm̲', 'n': 'n̲', 'o': 'o̲', 'p': 'p̲', 'q': 'q̲', 'r': 'r̲', 's': 's̲', 't': 't̲',
+                'u': 'u̲', 'v': 'v̲', 'w': 'w̲', 'x': 'x̲', 'y': 'y̲', 'z': 'z̲',
+                '0': '0̲', '1': '1̲', '2': '2̲', '3': '3̲', '4': '4̲', '5': '5̲', '6': '6̲', '7': '7̲', '8': '8̲', '9': '9̲'
+            },
+            strikethrough: {
+                'A': 'A̶', 'B': 'B̶', 'C': 'C̶', 'D': 'D̶', 'E': 'E̶', 'F': 'F̶', 'G': 'G̶', 'H': 'H̶', 'I': 'I̶', 'J': 'J̶',
+                'K': 'K̶', 'L': 'L̶', 'M': 'M̶', 'N': 'N̶', 'O': 'O̶', 'P': 'P̶', 'Q': 'Q̶', 'R': 'R̶', 'S': 'S̶', 'T': 'T̶',
+                'U': 'U̶', 'V': 'V̶', 'W': 'W̶', 'X': 'X̶', 'Y': 'Y̶', 'Z': 'Z̶',
+                'a': 'a̶', 'b': 'b̶', 'c': 'c̶', 'd': 'd̶', 'e': 'e̶', 'f': 'f̶', 'g': 'g̶', 'h': 'h̶', 'i': 'i̶', 'j': 'j̶',
+                'k': 'k̶', 'l': 'l̶', 'm': 'm̶', 'n': 'n̶', 'o': 'o̶', 'p': 'p̶', 'q': 'q̶', 'r': 'r̶', 's': 's̶', 't': 't̶',
+                'u': 'u̶', 'v': 'v̶', 'w': 'w̶', 'x': 'x̶', 'y': 'y̶', 'z': 'z̶',
+                '0': '0̶', '1': '1̶', '2': '2̶', '3': '3̶', '4': '4̶', '5': '5̶', '6': '6̶', '7': '7̶', '8': '8̶', '9': '9̶'
+            }
+        };
+
+        // Helper function to apply Unicode formatting
+        function applyUnicodeFormatting(text, formatType) {
+            const map = unicodeMaps[formatType];
+            if (!map) return text;
+            
+            return text.split('').map(char => {
+                // Check if character is already formatted
+                if (char.length > 1 && (char.includes('\u0332') || char.includes('\u0336'))) {
+                    // Remove existing formatting marks
+                    const baseChar = char.replace(/[\u0332\u0336]/g, '');
+                    // Apply new formatting to base character
+                    return (map[baseChar] || baseChar) + (char.includes('\u0332') ? '\u0332' : '') + (char.includes('\u0336') ? '\u0336' : '');
+                }
+                return map[char] || char;
+            }).join('');
+        }
+
+        // Helper function to remove all Unicode formatting
+        function removeUnicodeFormatting(text) {
+            let result = text;
+            
+            // Remove combining characters first
+            result = result.replace(/[\u0332\u0336]/g, '');
+            
+            // Reverse bold mapping
+            Object.entries(unicodeMaps.bold).forEach(([normal, unicode]) => {
+                result = result.replace(new RegExp(unicode, 'g'), normal);
+            });
+            
+            // Reverse italic mapping
+            Object.entries(unicodeMaps.italic).forEach(([normal, unicode]) => {
+                result = result.replace(new RegExp(unicode, 'g'), normal);
+            });
+            
+            return result;
+        }
 
         function formatText(type) {
             const textarea = document.getElementById('messageText');
@@ -366,53 +465,88 @@ Line breaks and formatting will be preserved."></textarea>
 
             switch(type) {
                 case 'bold':
-                    formattedText = `**${selectedText}**`;
+                    formattedText = applyUnicodeFormatting(selectedText, 'bold');
                     break;
                 case 'italic':
-                    formattedText = `*${selectedText}*`;
+                    formattedText = applyUnicodeFormatting(selectedText, 'italic');
                     break;
                 case 'underline':
-                    formattedText = `<u>${selectedText}</u>`;
+                    formattedText = applyUnicodeFormatting(selectedText, 'underline');
                     break;
                 case 'strikethrough':
-                    formattedText = `~~${selectedText}~~`;
+                    formattedText = applyUnicodeFormatting(selectedText, 'strikethrough');
                     break;
             }
 
+            // Replace the selected text with formatted text
             textarea.value = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
             
             // Set cursor position after formatted text
             const newPos = start + formattedText.length;
             textarea.setSelectionRange(newPos, newPos);
             textarea.focus();
+            
+            // Trigger input event to update any listeners
+            textarea.dispatchEvent(new Event('input'));
         }
 
         function clearFormatting() {
             const textarea = document.getElementById('messageText');
-            let text = textarea.value;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
             
-            // Remove markdown formatting
-            text = text.replace(/\*\*(.*?)\*\*/g, '$1'); // bold
-            text = text.replace(/\*(.*?)\*/g, '$1'); // italic
-            text = text.replace(/<u>(.*?)<\/u>/g, '$1'); // underline
-            text = text.replace(/~~(.*?)~~/g, '$1'); // strikethrough
+            if (start === end) {
+                // If no selection, clear formatting for entire text
+                textarea.value = removeUnicodeFormatting(textarea.value);
+            } else {
+                // If there's a selection, clear formatting only for selected text
+                const selectedText = textarea.value.substring(start, end);
+                const unformattedText = removeUnicodeFormatting(selectedText);
+                textarea.value = textarea.value.substring(0, start) + unformattedText + textarea.value.substring(end);
+                
+                // Set cursor position after unformatted text
+                const newPos = start + unformattedText.length;
+                textarea.setSelectionRange(newPos, newPos);
+            }
             
-            textarea.value = text;
+            textarea.focus();
+            textarea.dispatchEvent(new Event('input'));
         }
 
         function clearAll() {
+            stopSending();
             document.getElementById('emailList').value = '';
             document.getElementById('messageText').value = '';
             document.getElementById('emailCount').textContent = '0';
             hideStatus();
             currentIndex = 0;
             isSending = false;
+            shouldStop = false;
+        }
+
+        function stopSending() {
+            shouldStop = true;
+            isSending = false;
+            
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+            
+            document.getElementById('sendBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            
+            if (currentIndex > 0) {
+                showStatus(`Stopped. Sent to ${currentIndex} of ${emails.length} recipients`, 'error');
+            } else {
+                showStatus('Sending stopped', 'error');
+            }
         }
 
         function showStatus(message, type) {
             const status = document.getElementById('status');
             status.textContent = message;
-            status.className = 'status ' + type;
+            status.className = `status active ${type}`;
         }
 
         function hideStatus() {
@@ -452,11 +586,10 @@ Line breaks and formatting will be preserved."></textarea>
             emails = emailText.split('\n').filter(e => e.trim());
             let message = document.getElementById('messageText').value;
             
-            // Preserve exact formatting including line breaks
+            // Apply formatting if preserveFormatting is checked
             const preserveFormatting = document.getElementById('preserveFormatting').checked;
             if (!preserveFormatting) {
-                clearFormatting();
-                message = document.getElementById('messageText').value;
+                message = removeUnicodeFormatting(message);
             }
 
             const autoRedirect = document.getElementById('autoRedirect').checked;
@@ -464,9 +597,11 @@ Line breaks and formatting will be preserved."></textarea>
 
             currentIndex = 0;
             isSending = true;
+            shouldStop = false;
 
             showStatus(`Preparing to send to ${emails.length} recipient(s)...`, 'processing');
             document.getElementById('sendBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
 
             if (autoRedirect) {
                 sendNext(emails, message, delay);
@@ -476,9 +611,12 @@ Line breaks and formatting will be preserved."></textarea>
         }
 
         function sendNext(emails, message, delay) {
-            if (currentIndex >= emails.length) {
-                showStatus(`All messages sent successfully. Total: ${emails.length}`, 'success');
+            if (shouldStop || currentIndex >= emails.length) {
+                if (!shouldStop && currentIndex >= emails.length) {
+                    showStatus(`All messages sent successfully. Total: ${emails.length}`, 'success');
+                }
                 document.getElementById('sendBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
                 isSending = false;
                 return;
             }
@@ -489,17 +627,25 @@ Line breaks and formatting will be preserved."></textarea>
             openTeamsChat(email, message);
             currentIndex++;
 
-            setTimeout(() => sendNext(emails, message, delay), delay);
+            timeoutId = setTimeout(() => sendNext(emails, message, delay), delay);
         }
 
         function sendAll(emails, message) {
+            let openedCount = 0;
+            const total = emails.length;
+            
             emails.forEach((email, index) => {
                 setTimeout(() => {
-                    openTeamsChat(email.trim(), message);
-                    if (index === emails.length - 1) {
-                        showStatus(`Opened ${emails.length} Teams chats`, 'success');
-                        document.getElementById('sendBtn').disabled = false;
-                        isSending = false;
+                    if (!shouldStop) {
+                        openTeamsChat(email.trim(), message);
+                        openedCount++;
+                        
+                        if (openedCount === total) {
+                            showStatus(`Opened ${total} Teams chats`, 'success');
+                            document.getElementById('sendBtn').disabled = false;
+                            document.getElementById('stopBtn').disabled = true;
+                            isSending = false;
+                        }
                     }
                 }, index * 500);
             });
@@ -507,6 +653,36 @@ Line breaks and formatting will be preserved."></textarea>
 
         // Initialize
         document.getElementById('emailCount').textContent = '0';
+        
+        // Add keyboard shortcut for formatting (Ctrl+B, Ctrl+I, etc.)
+        document.addEventListener('keydown', function(e) {
+            const textarea = document.getElementById('messageText');
+            if (e.ctrlKey && textarea === document.activeElement) {
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                
+                if (start !== end) {
+                    switch(e.key.toLowerCase()) {
+                        case 'b':
+                            e.preventDefault();
+                            formatText('bold');
+                            break;
+                        case 'i':
+                            e.preventDefault();
+                            formatText('italic');
+                            break;
+                        case 'u':
+                            e.preventDefault();
+                            formatText('underline');
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            formatText('strikethrough');
+                            break;
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>
