@@ -170,6 +170,7 @@
             display: flex;
             gap: 16px;
             justify-content: center;
+            margin-bottom: 30px;
         }
 
         button {
@@ -270,6 +271,128 @@
             margin-top: 8px;
         }
 
+        /* Progress Dropdown Styles */
+        .progress-container {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f5f5f7;
+            border-radius: 12px 12px 0 0;
+            cursor: pointer;
+            border: 1px solid #d2d2d7;
+            border-bottom: none;
+        }
+
+        .progress-header h3 {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+        }
+
+        .progress-count {
+            background: #0071e3;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .arrow {
+            transition: transform 0.2s ease;
+        }
+
+        .arrow.up {
+            transform: rotate(180deg);
+        }
+
+        .progress-content {
+            border: 1px solid #d2d2d7;
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .progress-content.active {
+            display: block;
+        }
+
+        .progress-list {
+            list-style: none;
+            padding: 16px;
+        }
+
+        .progress-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e5e7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-item:last-child {
+            border-bottom: none;
+        }
+
+        .progress-email {
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .progress-status {
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-success {
+            background: #d1f2eb;
+            color: #0a5842;
+        }
+
+        .status-error {
+            background: #fce4e4;
+            color: #c41e3a;
+        }
+
+        .status-skipped {
+            background: #f5f5f7;
+            color: #6e6e73;
+        }
+
+        .progress-summary {
+            padding: 16px;
+            background: #f5f5f7;
+            border-top: 1px solid #e5e5e7;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+
         @media (max-width: 768px) {
             h1 {
                 font-size: 36px;
@@ -290,6 +413,12 @@
             button {
                 width: 100%;
             }
+
+            .progress-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
         }
     </style>
 </head>
@@ -299,7 +428,9 @@
         <p class="subtitle">Send messages to multiple recipients</p>
 
         <div class="info-box">
-            Enter email addresses and compose your message. The tool will open Microsoft Teams chat for each recipient with your message pre-filled. Text formatting and line breaks are preserved.
+            Enter email addresses and compose your message. The tool will open Microsoft Teams for each recipient with your message pre-filled. Text formatting and line breaks are preserved.
+            <br><br>
+            <strong>Note:</strong> This uses the Teams protocol (msteams://) which opens the Teams desktop app directly. Make sure you have the Teams app installed.
         </div>
 
         <div class="section">
@@ -357,6 +488,24 @@ Line breaks and formatting will be preserved."></textarea>
             <button class="btn-primary" id="sendBtn" onclick="startSending()">Send Messages</button>
         </div>
 
+        <!-- Progress Dropdown -->
+        <div id="progressContainer" class="progress-container">
+            <div class="progress-header" onclick="toggleProgress()">
+                <h3>Progress</h3>
+                <div class="progress-indicator">
+                    <span class="progress-count" id="progressCount">0/0</span>
+                    <span>▼</span>
+                </div>
+            </div>
+            <div id="progressContent" class="progress-content">
+                <ul class="progress-list" id="progressList"></ul>
+                <div class="progress-summary">
+                    <span id="summaryText">Ready to start</span>
+                    <span id="progressPercentage">0%</span>
+                </div>
+            </div>
+        </div>
+
         <div id="status" class="status"></div>
     </div>
 
@@ -366,6 +515,7 @@ Line breaks and formatting will be preserved."></textarea>
         let isSending = false;
         let shouldStop = false;
         let timeoutId = null;
+        let progressData = [];
 
         // Update email count
         document.getElementById('emailList').addEventListener('input', function() {
@@ -513,15 +663,69 @@ Line breaks and formatting will be preserved."></textarea>
             textarea.dispatchEvent(new Event('input'));
         }
 
+        function toggleProgress() {
+            const content = document.getElementById('progressContent');
+            const arrow = document.querySelector('.progress-indicator span:last-child');
+            content.classList.toggle('active');
+            arrow.classList.toggle('up');
+        }
+
+        function showProgress() {
+            document.getElementById('progressContainer').classList.add('active');
+            document.getElementById('progressContent').classList.add('active');
+            document.querySelector('.progress-indicator span:last-child').classList.add('up');
+        }
+
+        function updateProgress() {
+            const total = progressData.length;
+            const completed = progressData.filter(item => item.status === 'success').length;
+            const pending = progressData.filter(item => item.status === 'pending').length;
+            const failed = progressData.filter(item => item.status === 'error').length;
+            
+            // Update count
+            document.getElementById('progressCount').textContent = `${completed}/${total}`;
+            
+            // Update percentage
+            const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+            document.getElementById('progressPercentage').textContent = `${percentage}%`;
+            
+            // Update summary
+            let summary = `Sent: ${completed}`;
+            if (pending > 0) summary += ` | Pending: ${pending}`;
+            if (failed > 0) summary += ` | Failed: ${failed}`;
+            document.getElementById('summaryText').textContent = summary;
+            
+            // Update progress list
+            const progressList = document.getElementById('progressList');
+            progressList.innerHTML = '';
+            
+            progressData.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'progress-item';
+                li.innerHTML = `
+                    <div class="progress-email">${item.email}</div>
+                    <div class="progress-status status-${item.status}">${item.statusText}</div>
+                `;
+                progressList.appendChild(li);
+                
+                // Scroll to show current item if it's pending
+                if (item.status === 'pending') {
+                    li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+        }
+
         function clearAll() {
             stopSending();
             document.getElementById('emailList').value = '';
             document.getElementById('messageText').value = '';
             document.getElementById('emailCount').textContent = '0';
             hideStatus();
+            document.getElementById('progressContainer').classList.remove('active');
             currentIndex = 0;
             isSending = false;
             shouldStop = false;
+            progressData = [];
         }
 
         function stopSending() {
@@ -535,6 +739,16 @@ Line breaks and formatting will be preserved."></textarea>
             
             document.getElementById('sendBtn').disabled = false;
             document.getElementById('stopBtn').disabled = true;
+            
+            // Mark pending items as skipped
+            progressData.forEach(item => {
+                if (item.status === 'pending') {
+                    item.status = 'skipped';
+                    item.statusText = 'Skipped';
+                }
+            });
+            
+            updateProgress();
             
             if (currentIndex > 0) {
                 showStatus(`Stopped. Sent to ${currentIndex} of ${emails.length} recipients`, 'error');
@@ -572,9 +786,30 @@ Line breaks and formatting will be preserved."></textarea>
         }
 
         function openTeamsChat(email, message) {
-            const encodedMessage = encodeURIComponent(message);
-            const teamsUrl = `https://teams.microsoft.com/l/chat/0/0?users=${email}&message=${encodedMessage}`;
-            window.open(teamsUrl, '_blank');
+            // Clean the message for Teams URL
+            const cleanMessage = message.replace(/\n/g, '\n');
+            const encodedMessage = encodeURIComponent(cleanMessage);
+            
+            // Use Teams protocol URL (msteams://) for direct app opening
+            // Format: msteams://teams.microsoft.com/l/chat/0/0?users=email&message=encodedMessage
+            const teamsUrl = `msteams://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}&message=${encodedMessage}`;
+            
+            // Create an iframe to open the URL (this helps avoid popup blockers)
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = teamsUrl;
+            document.body.appendChild(iframe);
+            
+            // Remove the iframe after a short delay
+            setTimeout(() => {
+                document.body.removeChild(iframe);
+            }, 1000);
+            
+            // Fallback to web version if protocol fails
+            setTimeout(() => {
+                const webUrl = `https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}&message=${encodedMessage}`;
+                window.open(webUrl, '_blank', 'noopener,noreferrer');
+            }, 500);
         }
 
         function startSending() {
@@ -599,7 +834,18 @@ Line breaks and formatting will be preserved."></textarea>
             isSending = true;
             shouldStop = false;
 
-            showStatus(`Preparing to send to ${emails.length} recipient(s)...`, 'processing');
+            // Initialize progress data
+            progressData = emails.map(email => ({
+                email: email.trim(),
+                status: 'pending',
+                statusText: 'Pending'
+            }));
+
+            // Show and update progress
+            showProgress();
+            updateProgress();
+            
+            showStatus(`Starting to send to ${emails.length} recipient(s)...`, 'processing');
             document.getElementById('sendBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
 
@@ -622,9 +868,28 @@ Line breaks and formatting will be preserved."></textarea>
             }
 
             const email = emails[currentIndex].trim();
+            
+            // Update progress for current email
+            progressData[currentIndex].status = 'pending';
+            progressData[currentIndex].statusText = 'Opening Teams...';
+            updateProgress();
+            
             showStatus(`Opening chat ${currentIndex + 1} of ${emails.length}: ${email}`, 'processing');
             
-            openTeamsChat(email, message);
+            try {
+                openTeamsChat(email, message);
+                // Mark as success after opening
+                setTimeout(() => {
+                    progressData[currentIndex].status = 'success';
+                    progressData[currentIndex].statusText = 'Sent';
+                    updateProgress();
+                }, 1000);
+            } catch (error) {
+                progressData[currentIndex].status = 'error';
+                progressData[currentIndex].statusText = 'Failed';
+                updateProgress();
+            }
+            
             currentIndex++;
 
             timeoutId = setTimeout(() => sendNext(emails, message, delay), delay);
@@ -637,17 +902,37 @@ Line breaks and formatting will be preserved."></textarea>
             emails.forEach((email, index) => {
                 setTimeout(() => {
                     if (!shouldStop) {
-                        openTeamsChat(email.trim(), message);
-                        openedCount++;
+                        const emailTrimmed = email.trim();
                         
-                        if (openedCount === total) {
-                            showStatus(`Opened ${total} Teams chats`, 'success');
-                            document.getElementById('sendBtn').disabled = false;
-                            document.getElementById('stopBtn').disabled = true;
-                            isSending = false;
+                        // Update progress for current email
+                        progressData[index].status = 'pending';
+                        progressData[index].statusText = 'Opening...';
+                        updateProgress();
+                        
+                        try {
+                            openTeamsChat(emailTrimmed, message);
+                            // Mark as success after opening
+                            setTimeout(() => {
+                                progressData[index].status = 'success';
+                                progressData[index].statusText = 'Sent';
+                                openedCount++;
+                                updateProgress();
+                                
+                                if (openedCount === total) {
+                                    showStatus(`Opened ${total} Teams chats`, 'success');
+                                    document.getElementById('sendBtn').disabled = false;
+                                    document.getElementById('stopBtn').disabled = true;
+                                    isSending = false;
+                                }
+                            }, 1000);
+                        } catch (error) {
+                            progressData[index].status = 'error';
+                            progressData[index].statusText = 'Failed';
+                            openedCount++;
+                            updateProgress();
                         }
                     }
-                }, index * 500);
+                }, index * 2000); // 2-second delay between openings to avoid overwhelming
             });
         }
 
