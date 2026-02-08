@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teams Messenger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #ffffff;
+            color: #1d1d1f;
+            line-height: 1.6;
+            padding: 60px 20px;
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 21px;
+            font-weight: 400;
+            color: #6e6e73;
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .label {
+            font-size: 17px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid #d2d2d7;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 17px;
+            resize: vertical;
+            transition: all 0.2s ease;
+            background: #fbfbfd;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #0071e3;
+            background: #ffffff;
+        }
+
+        .email-input {
+            min-height: 140px;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+        }
+
+        .message-input {
+            min-height: 200px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #f5f5f7;
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            padding: 8px 16px;
+            background: #ffffff;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toolbar-btn:hover {
+            background: #e8e8ed;
+        }
+
+        .toolbar-btn.active {
+            background: #0071e3;
+            color: #ffffff;
+            border-color: #0071e3;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 24px;
+            background: #f5f5f7;
+            border-radius: 12px;
+            margin-bottom: 40px;
+        }
+
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #0071e3;
+        }
+
+        .option label {
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .delay-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .delay-control input[type="number"] {
+            width: 70px;
+            padding: 8px 12px;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #ffffff;
+        }
+
+        .delay-control input[type="number"]:focus {
+            outline: none;
+            border-color: #0071e3;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 16px 40px;
+            font-size: 17px;
+            font-weight: 500;
+            border: none;
+            border-radius: 980px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 160px;
+        }
+
+        .btn-primary {
+            background: #0071e3;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #0077ed;
+        }
+
+        .btn-primary:disabled {
+            background: #d2d2d7;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #0071e3;
+            border: 1px solid #0071e3;
+        }
+
+        .btn-secondary:hover {
+            background: #0071e3;
+            color: #ffffff;
+        }
+
+        .info-box {
+            background: #f5f5f7;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            font-size: 15px;
+            color: #6e6e73;
+        }
+
+        .status {
+            margin-top: 30px;
+            padding: 20px 24px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 15px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d1f2eb;
+            color: #0a5842;
+        }
+
+        .status.error {
+            background: #fce4e4;
+            color: #c41e3a;
+        }
+
+        .status.processing {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .counter {
+            font-weight: 500;
+            color: #0071e3;
+        }
+
+        .help-text {
+            font-size: 13px;
+            color: #86868b;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 36px;
+            }
+
+            .subtitle {
+                font-size: 19px;
+            }
+
+            .options {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Teams Messenger</h1>
+        <p class="subtitle">Send messages to multiple recipients</p>
+
+        <div class="info-box">
+            Enter email addresses and compose your message. The tool will open Microsoft Teams chat for each recipient with your message pre-filled. Text formatting and line breaks are preserved.
+        </div>
+
+        <div class="section">
+            <label class="label">Recipients</label>
+            <textarea 
+                id="emailList" 
+                class="email-input" 
+                placeholder="user1@example.com
+user2@example.com
+user3@example.com"></textarea>
+            <div class="help-text">Total: <span class="counter" id="emailCount">0</span> recipients</div>
+        </div>
+
+        <div class="section">
+            <label class="label">Message</label>
+            <div class="toolbar">
+                <button class="toolbar-btn" onclick="formatText('bold')" title="Bold">B</button>
+                <button class="toolbar-btn" onclick="formatText('italic')" title="Italic" style="font-style: italic;">I</button>
+                <button class="toolbar-btn" onclick="formatText('underline')" title="Underline" style="text-decoration: underline;">U</button>
+                <button class="toolbar-btn" onclick="formatText('strikethrough')" title="Strikethrough" style="text-decoration: line-through;">S</button>
+                <button class="toolbar-btn" onclick="clearFormatting()" title="Clear Formatting">Clear Format</button>
+            </div>
+            <textarea 
+                id="messageText" 
+                class="message-input" 
+                placeholder="Type your message here...
+
+Line breaks and formatting will be preserved."></textarea>
+            <div class="help-text">Use the toolbar above to format selected text</div>
+        </div>
+
+        <div class="options">
+            <div class="option-group">
+                <div class="option">
+                    <input type="checkbox" id="autoRedirect" checked>
+                    <label for="autoRedirect">Auto-redirect to next recipient</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="preserveFormatting" checked>
+                    <label for="preserveFormatting">Preserve text formatting</label>
+                </div>
+            </div>
+            <div class="option-group">
+                <label style="font-size: 15px; font-weight: 500; margin-bottom: 8px;">Redirect delay</label>
+                <div class="delay-control">
+                    <input type="number" id="delayTime" value="3" min="1" max="60">
+                    <span>seconds</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-secondary" onclick="clearAll()">Clear All</button>
+            <button class="btn-primary" id="sendBtn" onclick="startSending()">Send Messages</button>
+        </div>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        let currentIndex = 0;
+        let emails = [];
+        let isSending = false;
+        let formattedRanges = [];
+
+        // Update email count
+        document.getElementById('emailList').addEventListener('input', function() {
+            const text = this.value.trim();
+            emails = text ? text.split('\n').filter(e => e.trim()) : [];
+            document.getElementById('emailCount').textContent = emails.length;
+        });
+
+        function formatText(type) {
+            const textarea = document.getElementById('messageText');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            
+            if (start === end) {
+                alert('Please select text to format');
+                return;
+            }
+
+            const selectedText = textarea.value.substring(start, end);
+            let formattedText = selectedText;
+
+            switch(type) {
+                case 'bold':
+                    formattedText = `**${selectedText}**`;
+                    break;
+                case 'italic':
+                    formattedText = `*${selectedText}*`;
+                    break;
+                case 'underline':
+                    formattedText = `<u>${selectedText}</u>`;
+                    break;
+                case 'strikethrough':
+                    formattedText = `~~${selectedText}~~`;
+                    break;
+            }
+
+            textarea.value = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
+            
+            // Set cursor position after formatted text
+            const newPos = start + formattedText.length;
+            textarea.setSelectionRange(newPos, newPos);
+            textarea.focus();
+        }
+
+        function clearFormatting() {
+            const textarea = document.getElementById('messageText');
+            let text = textarea.value;
+            
+            // Remove markdown formatting
+            text = text.replace(/\*\*(.*?)\*\*/g, '$1'); // bold
+            text = text.replace(/\*(.*?)\*/g, '$1'); // italic
+            text = text.replace(/<u>(.*?)<\/u>/g, '$1'); // underline
+            text = text.replace(/~~(.*?)~~/g, '$1'); // strikethrough
+            
+            textarea.value = text;
+        }
+
+        function clearAll() {
+            document.getElementById('emailList').value = '';
+            document.getElementById('messageText').value = '';
+            document.getElementById('emailCount').textContent = '0';
+            hideStatus();
+            currentIndex = 0;
+            isSending = false;
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+
+        function hideStatus() {
+            const status = document.getElementById('status');
+            status.className = 'status';
+        }
+
+        function validateInputs() {
+            const emailText = document.getElementById('emailList').value.trim();
+            const message = document.getElementById('messageText').value.trim();
+            
+            if (!emailText) {
+                showStatus('Please enter at least one email address', 'error');
+                return false;
+            }
+
+            if (!message) {
+                showStatus('Please enter a message', 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        function openTeamsChat(email, message) {
+            const encodedMessage = encodeURIComponent(message);
+            const teamsUrl = `https://teams.microsoft.com/l/chat/0/0?users=${email}&message=${encodedMessage}`;
+            window.open(teamsUrl, '_blank');
+        }
+
+        function startSending() {
+            if (isSending) return;
+
+            if (!validateInputs()) return;
+
+            const emailText = document.getElementById('emailList').value.trim();
+            emails = emailText.split('\n').filter(e => e.trim());
+            let message = document.getElementById('messageText').value;
+            
+            // Preserve exact formatting including line breaks
+            const preserveFormatting = document.getElementById('preserveFormatting').checked;
+            if (!preserveFormatting) {
+                clearFormatting();
+                message = document.getElementById('messageText').value;
+            }
+
+            const autoRedirect = document.getElementById('autoRedirect').checked;
+            const delay = parseInt(document.getElementById('delayTime').value) * 1000;
+
+            currentIndex = 0;
+            isSending = true;
+
+            showStatus(`Preparing to send to ${emails.length} recipient(s)...`, 'processing');
+            document.getElementById('sendBtn').disabled = true;
+
+            if (autoRedirect) {
+                sendNext(emails, message, delay);
+            } else {
+                sendAll(emails, message);
+            }
+        }
+
+        function sendNext(emails, message, delay) {
+            if (currentIndex >= emails.length) {
+                showStatus(`All messages sent successfully. Total: ${emails.length}`, 'success');
+                document.getElementById('sendBtn').disabled = false;
+                isSending = false;
+                return;
+            }
+
+            const email = emails[currentIndex].trim();
+            showStatus(`Opening chat ${currentIndex + 1} of ${emails.length}: ${email}`, 'processing');
+            
+            openTeamsChat(email, message);
+            currentIndex++;
+
+            setTimeout(() => sendNext(emails, message, delay), delay);
+        }
+
+        function sendAll(emails, message) {
+            emails.forEach((email, index) => {
+                setTimeout(() => {
+                    openTeamsChat(email.trim(), message);
+                    if (index === emails.length - 1) {
+                        showStatus(`Opened ${emails.length} Teams chats`, 'success');
+                        document.getElementById('sendBtn').disabled = false;
+                        isSending = false;
+                    }
+                }, index * 500);
+            });
+        }
+
+        // Initialize
+        document.getElementById('emailCount').textContent = '0';
+    </script>
+</body>
+</html>
