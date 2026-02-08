@@ -429,8 +429,6 @@
 
         <div class="info-box">
             Enter email addresses and compose your message. The tool will open Microsoft Teams for each recipient with your message pre-filled. Text formatting and line breaks are preserved.
-            <br><br>
-            <strong>Note:</strong> This uses the Teams protocol (msteams://) which opens the Teams desktop app directly. Make sure you have the Teams app installed.
         </div>
 
         <div class="section">
@@ -786,30 +784,12 @@ Line breaks and formatting will be preserved."></textarea>
         }
 
         function openTeamsChat(email, message) {
-            // Clean the message for Teams URL
-            const cleanMessage = message.replace(/\n/g, '\n');
-            const encodedMessage = encodeURIComponent(cleanMessage);
+            // Use the original Teams URL format that was working perfectly
+            const encodedMessage = encodeURIComponent(message);
+            const teamsUrl = `https://teams.microsoft.com/l/chat/0/0?users=${email}&message=${encodedMessage}`;
             
-            // Use Teams protocol URL (msteams://) for direct app opening
-            // Format: msteams://teams.microsoft.com/l/chat/0/0?users=email&message=encodedMessage
-            const teamsUrl = `msteams://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}&message=${encodedMessage}`;
-            
-            // Create an iframe to open the URL (this helps avoid popup blockers)
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = teamsUrl;
-            document.body.appendChild(iframe);
-            
-            // Remove the iframe after a short delay
-            setTimeout(() => {
-                document.body.removeChild(iframe);
-            }, 1000);
-            
-            // Fallback to web version if protocol fails
-            setTimeout(() => {
-                const webUrl = `https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(email)}&message=${encodedMessage}`;
-                window.open(webUrl, '_blank', 'noopener,noreferrer');
-            }, 500);
+            // Open in a new window (this triggers Teams to open in the app)
+            window.open(teamsUrl, '_blank');
         }
 
         function startSending() {
@@ -932,7 +912,7 @@ Line breaks and formatting will be preserved."></textarea>
                             updateProgress();
                         }
                     }
-                }, index * 2000); // 2-second delay between openings to avoid overwhelming
+                }, index * 2000); // 2-second delay between openings
             });
         }
 
