@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Number Extractor</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+            color: #1d1d1f;
+            line-height: 1.47059;
+            font-weight: 400;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #f5f5f7;
+            border-radius: 18px;
+            padding: 40px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.003em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #86868b;
+            margin-bottom: 40px;
+            font-size: 17px;
+            font-weight: 400;
+        }
+        
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .upload-box {
+            border: 1.5px solid #d2d2d7;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            background: #ffffff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .upload-box:hover {
+            border-color: #007AFF;
+            background: #f8f9ff;
+        }
+        
+        .upload-label {
+            display: block;
+            cursor: pointer;
+        }
+        
+        .upload-icon {
+            font-size: 40px;
+            color: #007AFF;
+            margin-bottom: 16px;
+        }
+        
+        .upload-text {
+            font-size: 19px;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .upload-hint {
+            font-size: 15px;
+            color: #86868b;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .paste-section {
+            border: 1.5px solid #d2d2d7;
+            border-radius: 12px;
+            padding: 20px;
+            background: #ffffff;
+        }
+        
+        .paste-label {
+            font-size: 17px;
+            color: #1d1d1f;
+            margin-bottom: 12px;
+            font-weight: 500;
+            display: block;
+        }
+        
+        .paste-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 14px;
+            border: 1px solid #d2d2d7;
+            border-radius: 8px;
+            font-size: 15px;
+            resize: vertical;
+            background: #fbfbfd;
+            color: #1d1d1f;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+        }
+        
+        .paste-textarea:focus {
+            outline: none;
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+        
+        .file-info {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e5ea;
+            display: none;
+        }
+        
+        .file-info.show {
+            display: block;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            color: #1d1d1f;
+            font-size: 16px;
+        }
+        
+        .file-stats {
+            font-size: 14px;
+            color: #86868b;
+            margin-top: 4px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-primary {
+            background: #007AFF;
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #0056CC;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: #e5e5ea;
+            color: #1d1d1f;
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: #d2d2d7;
+        }
+        
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .results-section {
+            display: none;
+        }
+        
+        .results-section.show {
+            display: block;
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e5ea;
+        }
+        
+        .results-title {
+            font-size: 22px;
+            color: #1d1d1f;
+            font-weight: 600;
+        }
+        
+        .phone-count {
+            background: #007AFF;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        
+        .phone-list {
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid #e5e5ea;
+            border-radius: 10px;
+            padding: 0;
+            background: #ffffff;
+        }
+        
+        .phone-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f2f2f7;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 15px;
+            color: #1d1d1f;
+            letter-spacing: -0.01em;
+        }
+        
+        .phone-item:last-child {
+            border-bottom: none;
+        }
+        
+        .phone-item:hover {
+            background: #f8f8fa;
+        }
+        
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin-top: 24px;
+            background: #34C759;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .download-btn:hover {
+            background: #2AA44F;
+            transform: translateY(-1px);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 24px;
+            color: #007AFF;
+            font-weight: 500;
+            font-size: 17px;
+            display: none;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007AFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .option-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e5e5ea;
+        }
+        
+        .option-label {
+            font-size: 16px;
+            color: #1d1d1f;
+            font-weight: 500;
+            flex: 1;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #d2d2d7;
+            transition: .3s;
+            border-radius: 28px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #007AFF;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+        }
+        
+        .note {
+            font-size: 13px;
+            color: #86868b;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 734px) {
+            .container {
+                padding: 24px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            .phone-list {
+                max-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Phone Number Extractor</h1>
+        <p class="subtitle">Extract and deduplicate phone numbers from WhatsApp exports</p>
+        
+        <div class="input-section">
+            <div class="upload-box">
+                <label class="upload-label" id="dropArea">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Upload CSV Files</div>
+                    <div class="upload-hint">Drop WhatsApp export CSV files or click to browse</div>
+                    <input type="file" id="fileInput" accept=".csv" multiple>
+                </label>
+            </div>
+            
+            <div class="paste-section">
+                <label class="paste-label">Or paste phone numbers directly:</label>
+                <textarea class="paste-textarea" id="pasteArea" placeholder="Paste phone numbers here, one per line or separated by commas..."></textarea>
+            </div>
+        </div>
+        
+        <div class="option-row">
+            <div class="option-label">Remove spaces from phone numbers</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="removeSpacesToggle" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        
+        <div class="file-info" id="fileInfo">
+            <div class="file-name" id="fileName">No files selected</div>
+            <div class="file-stats" id="fileStats">0 files selected</div>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="extractBtn">Extract Phone Numbers</button>
+            <button class="btn btn-secondary" id="resetBtn" disabled>Reset</button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            Processing... Please wait
+        </div>
+        
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <div class="results-title">Extracted Phone Numbers</div>
+                <div class="phone-count" id="phoneCount">0</div>
+            </div>
+            <div class="phone-list" id="phoneList">
+                <!-- Phone numbers will appear here -->
+            </div>
+            <p class="note">Duplicates removed automatically • Numbers cleaned and formatted</p>
+            <button class="download-btn" id="downloadBtn">Download as CSV</button>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const dropArea = document.getElementById('dropArea');
+        const pasteArea = document.getElementById('pasteArea');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileStats = document.getElementById('fileStats');
+        const extractBtn = document.getElementById('extractBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const loading = document.getElementById('loading');
+        const resultsSection = document.getElementById('resultsSection');
+        const phoneList = document.getElementById('phoneList');
+        const phoneCount = document.getElementById('phoneCount');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const removeSpacesToggle = document.getElementById('removeSpacesToggle');
+        
+        let selectedFiles = [];
+        let extractedNumbers = [];
+        let hasPastedContent = false;
+        
+        // Handle drag and drop
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#007AFF';
+            dropArea.style.background = '#f8f9ff';
+        });
+        
+        dropArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#d2d2d7';
+            dropArea.style.background = '#ffffff';
+        });
+        
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.style.borderColor = '#d2d2d7';
+            dropArea.style.background = '#ffffff';
+            
+            const files = Array.from(e.dataTransfer.files).filter(file => 
+                file.name.toLowerCase().endsWith('.csv')
+            );
+            
+            if (files.length > 0) {
+                selectedFiles = files;
+                pasteArea.value = '';
+                hasPastedContent = false;
+                updateFileInfo();
+            } else {
+                alert('Please drop CSV files only');
+            }
+        });
+        
+        // Handle file input
+        fileInput.addEventListener('change', (e) => {
+            selectedFiles = Array.from(e.target.files);
+            pasteArea.value = '';
+            hasPastedContent = false;
+            updateFileInfo();
+        });
+        
+        // Handle paste area changes
+        pasteArea.addEventListener('input', (e) => {
+            hasPastedContent = e.target.value.trim().length > 0;
+            if (hasPastedContent) {
+                selectedFiles = [];
+                fileInput.value = '';
+                updateFileInfo();
+            }
+        });
+        
+        // Update file info display
+        function updateFileInfo() {
+            if (selectedFiles.length > 0) {
+                fileInfo.classList.add('show');
+                fileName.textContent = selectedFiles.length === 1 
+                    ? selectedFiles[0].name 
+                    : `${selectedFiles.length} files selected`;
+                
+                const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+                const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+                fileStats.textContent = `${selectedFiles.length} CSV files, ${sizeMB} MB total`;
+                
+                extractBtn.disabled = false;
+                resetBtn.disabled = false;
+            } else if (hasPastedContent) {
+                fileInfo.classList.add('show');
+                fileName.textContent = 'Text input';
+                const lineCount = pasteArea.value.split('\n').filter(line => line.trim()).length;
+                fileStats.textContent = `${lineCount} lines of text`;
+                extractBtn.disabled = false;
+                resetBtn.disabled = false;
+            } else {
+                fileInfo.classList.remove('show');
+                extractBtn.disabled = true;
+                resetBtn.disabled = true;
+            }
+        }
+        
+        // Extract phone numbers
+        extractBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0 && !hasPastedContent) return;
+            
+            loading.style.display = 'block';
+            resultsSection.classList.remove('show');
+            extractedNumbers = [];
+            
+            try {
+                if (selectedFiles.length > 0) {
+                    // Process uploaded files
+                    for (const file of selectedFiles) {
+                        const text = await readFileAsText(file);
+                        const numbers = extractPhoneNumbersFromCSV(text);
+                        extractedNumbers.push(...numbers);
+                    }
+                } else if (hasPastedContent) {
+                    // Process pasted text
+                    const numbers = extractPhoneNumbersFromText(pasteArea.value);
+                    extractedNumbers.push(...numbers);
+                }
+                
+                // Clean and deduplicate numbers
+                extractedNumbers = cleanAndDeduplicateNumbers(extractedNumbers);
+                
+                displayResults();
+            } catch (error) {
+                alert('Error processing: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+        
+        // Read file as text
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsText(file);
+            });
+        }
+        
+        // Extract phone numbers from CSV text
+        function extractPhoneNumbersFromCSV(csvText) {
+            const numbers = [];
+            const lines = csvText.split('\n');
+            
+            // Skip header if present
+            let startIndex = lines[0].toLowerCase().includes('phone') ? 1 : 0;
+            
+            for (let i = startIndex; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // Simple CSV parsing (split by comma)
+                const columns = parseCSVLine(line);
+                if (columns.length > 0) {
+                    const firstCol = columns[0].trim();
+                    
+                    // Check if it looks like a phone number
+                    if (isPhoneNumber(firstCol)) {
+                        numbers.push(firstCol);
+                    }
+                }
+            }
+            
+            return numbers;
+        }
+        
+        // Extract phone numbers from pasted text
+        function extractPhoneNumbersFromText(text) {
+            const numbers = [];
+            // Split by newlines, commas, or spaces
+            const potentialNumbers = text.split(/[\n,\s]+/);
+            
+            for (let num of potentialNumbers) {
+                num = num.trim();
+                if (num && isPhoneNumber(num)) {
+                    numbers.push(num);
+                }
+            }
+            
+            return numbers;
+        }
+        
+        // Clean and deduplicate phone numbers
+        function cleanAndDeduplicateNumbers(numbers) {
+            const cleaned = new Set();
+            
+            for (let num of numbers) {
+                // Remove all spaces if toggle is on
+                let cleanNum = removeSpacesToggle.checked ? 
+                    num.replace(/\s+/g, '') : 
+                    num.replace(/\s+/g, ' ').trim();
+                
+                // Keep "You" as a special case
+                if (cleanNum === 'You') {
+                    cleaned.add(cleanNum);
+                } 
+                // Only add if it looks like a valid phone number format
+                else if (isPhoneNumber(cleanNum)) {
+                    cleaned.add(cleanNum);
+                }
+            }
+            
+            return Array.from(cleaned);
+        }
+        
+        // Simple CSV line parser
+        function parseCSVLine(line) {
+            const result = [];
+            let inQuotes = false;
+            let currentField = '';
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+                
+                if (char === '"' && !inQuotes) {
+                    inQuotes = true;
+                } else if (char === '"' && inQuotes && nextChar === '"') {
+                    currentField += '"';
+                    i++; // Skip next quote
+                } else if (char === '"' && inQuotes) {
+                    inQuotes = false;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(currentField);
+                    currentField = '';
+                } else {
+                    currentField += char;
+                }
+            }
+            
+            result.push(currentField);
+            return result;
+        }
+        
+        // Check if string looks like a phone number
+        function isPhoneNumber(str) {
+            if (str === 'You') return true;
+            
+            // More comprehensive phone number pattern
+            return /^[\+\d][\d\s\-\(\)\.\+]{4,}$/.test(str) && 
+                   str.replace(/[^\d]/g, '').length >= 5;
+        }
+        
+        // Display results
+        function displayResults() {
+            phoneList.innerHTML = '';
+            phoneCount.textContent = extractedNumbers.length.toLocaleString();
+            
+            if (extractedNumbers.length === 0) {
+                phoneList.innerHTML = '<div class="phone-item">No valid phone numbers found</div>';
+            } else {
+                extractedNumbers.forEach(number => {
+                    const div = document.createElement('div');
+                    div.className = 'phone-item';
+                    div.textContent = number;
+                    phoneList.appendChild(div);
+                });
+            }
+            
+            resultsSection.classList.add('show');
+        }
+        
+        // Download CSV
+        downloadBtn.addEventListener('click', () => {
+            if (extractedNumbers.length === 0) return;
+            
+            const csvContent = "Phone Number\n" + extractedNumbers.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'phone_numbers_cleaned.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+        
+        // Reset
+        resetBtn.addEventListener('click', () => {
+            selectedFiles = [];
+            fileInput.value = '';
+            pasteArea.value = '';
+            hasPastedContent = false;
+            fileInfo.classList.remove('show');
+            resultsSection.classList.remove('show');
+            extractBtn.disabled = true;
+            resetBtn.disabled = true;
+            loading.style.display = 'none';
+        });
+        
+        // Initialize
+        updateFileInfo();
+    </script>
+</body>
+</html>
