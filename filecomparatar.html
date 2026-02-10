@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-          <link rel="icon" type="image/jpeg" href="c7.jpg">
+    <link rel="icon" type="image/jpeg" href="c7.jpg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Number Comparator</title>
     <style>
@@ -145,10 +145,19 @@
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-top: 8px;
         }
 
         .upload-button:hover {
             background: #0052a3;
+        }
+
+        .upload-button.secondary {
+            background: #6e6e73;
+        }
+
+        .upload-button.secondary:hover {
+            background: #5a5a5e;
         }
 
         .file-name {
@@ -206,6 +215,79 @@
             font-family: 'SF Mono', monospace;
             color: #86868b;
             line-height: 1.6;
+        }
+
+        /* Single List Processor */
+        .single-list-section {
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        .single-list-toggle {
+            background: #f5f5f7;
+            border: 1px solid #d2d2d7;
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 17px;
+            font-weight: 500;
+            color: #1d1d1f;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .single-list-toggle:hover {
+            background: #e5e5e7;
+        }
+
+        .toggle-icon {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .single-list-toggle.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .single-list-content {
+            display: none;
+            background: #f5f5f7;
+            border-radius: 0 0 12px 12px;
+            border: 1px solid #d2d2d7;
+            border-top: none;
+            padding: 32px;
+            margin-top: -12px;
+        }
+
+        .single-list-content.active {
+            display: block;
+        }
+
+        .single-list-title {
+            font-size: 21px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+        }
+
+        .single-list-subtitle {
+            font-size: 15px;
+            color: #86868b;
+            margin-bottom: 24px;
+        }
+
+        .single-list-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .single-list-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Compare Button */
@@ -377,6 +459,15 @@
             display: none;
         }
 
+        .success-message {
+            background: #34c759;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
         footer {
             text-align: center;
             padding: 40px 0;
@@ -399,6 +490,65 @@
         .input-mode.active {
             display: block;
         }
+
+        .output-area {
+            height: 300px;
+            width: 100%;
+            padding: 16px;
+            border: 1px solid #d2d2d7;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'SF Mono', monospace;
+            resize: vertical;
+            background: white;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-y: auto;
+        }
+
+        .output-area:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .copy-button {
+            background: #34c759;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 16px;
+        }
+
+        .copy-button:hover {
+            background: #2aa44f;
+        }
+
+        .copy-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .process-button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 16px;
+        }
+
+        .process-button:hover {
+            background: #0052a3;
+        }
     </style>
     <!-- SheetJS for Excel files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -411,6 +561,7 @@
         </header>
 
         <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
 
         <div class="comparison-sections">
             <!-- Section A -->
@@ -494,6 +645,81 @@
             </div>
         </div>
 
+        <!-- Single List Processor (New Dropdown Section) -->
+        <div class="single-list-section">
+            <div class="single-list-toggle" id="singleListToggle">
+                <span>Single List Processor (Format Cleaner)</span>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="single-list-content" id="singleListContent">
+                <h3 class="single-list-title">Format and Clean Number List</h3>
+                <p class="single-list-subtitle">Paste or upload a list with numbers (like "360,014" with line numbers) and get cleaned output without commas or line numbers</p>
+                
+                <div class="single-list-grid">
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title">Input</div>
+                        </div>
+                        
+                        <!-- Upload Mode -->
+                        <div class="file-area" id="singleFileArea">
+                            <label class="upload-label">Upload file with number list</label>
+                            <button class="upload-button secondary" id="singleUploadButton">Choose File</button>
+                            <input type="file" class="file-input" id="singleFileInput" accept=".txt,.csv,.xlsx,.xls,.json">
+                            <div class="file-name" id="singleFileName"></div>
+                        </div>
+                        <div class="file-type-info">
+                            Supports: TXT, CSV, Excel (XLSX/XLS), JSON
+                        </div>
+                        
+                        <div style="text-align: center; margin: 20px 0; color: #86868b; font-size: 15px;">
+                            — OR —
+                        </div>
+                        
+                        <!-- Text Input -->
+                        <textarea class="text-area" id="singleListInput" placeholder="Paste your list here (like in the example):
+360,014
+1
+453,011
+2
+453,012
+3
+..."></textarea>
+                        <div class="input-help">
+                            Each number on a new line. The processor will skip line numbers (1, 2, 3...) and only extract numbers with commas.
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 24px;">
+                            <button class="process-button" id="processSingleList">Process List</button>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <div class="section-header">
+                            <div class="section-title">Output</div>
+                        </div>
+                        
+                        <div class="preview-title">Cleaned Numbers (<span id="outputCount">0</span>)</div>
+                        <textarea class="output-area" id="singleListOutput" readonly placeholder="Cleaned output will appear here:
+360014
+453011
+453012
+..."></textarea>
+                        
+                        <div class="input-help">
+                            • Line numbers (1, 2, 3...) are automatically skipped<br>
+                            • Commas are removed from numbers<br>
+                            • Only actual data numbers are kept
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 16px;">
+                            <button class="copy-button" id="copyOutputButton" disabled>Copy to Clipboard</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Compare Button -->
         <div class="compare-section">
             <button class="compare-button" id="compareButton" disabled>Compare Numbers</button>
@@ -570,12 +796,18 @@
                 file: null,
                 numbers: [],
                 text: ''
+            },
+            singleList: {
+                file: null,
+                text: '',
+                processedNumbers: []
             }
         };
 
         // DOM Elements
         const elements = {
             errorMessage: document.getElementById('errorMessage'),
+            successMessage: document.getElementById('successMessage'),
             
             // Section A
             uploadButtonA: document.getElementById('uploadButtonA'),
@@ -593,6 +825,19 @@
             previewB: document.getElementById('previewB'),
             previewListB: document.getElementById('previewListB'),
             
+            // Single List Processor
+            singleListToggle: document.getElementById('singleListToggle'),
+            singleListContent: document.getElementById('singleListContent'),
+            singleUploadButton: document.getElementById('singleUploadButton'),
+            singleFileInput: document.getElementById('singleFileInput'),
+            singleFileName: document.getElementById('singleFileName'),
+            singleFileArea: document.getElementById('singleFileArea'),
+            singleListInput: document.getElementById('singleListInput'),
+            singleListOutput: document.getElementById('singleListOutput'),
+            processSingleList: document.getElementById('processSingleList'),
+            copyOutputButton: document.getElementById('copyOutputButton'),
+            outputCount: document.getElementById('outputCount'),
+            
             // Compare
             compareButton: document.getElementById('compareButton'),
             loading: document.getElementById('loading'),
@@ -607,7 +852,7 @@
 
         // Initialize
         function init() {
-            // Mode switching
+            // Mode switching for comparison sections
             document.querySelectorAll('.mode-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const section = this.dataset.section;
@@ -634,19 +879,42 @@
                 });
             });
 
-            // File uploads
+            // File uploads for comparison
             elements.uploadButtonA.addEventListener('click', () => elements.fileInputA.click());
             elements.fileInputA.addEventListener('change', (e) => handleFileUpload(e, 'A'));
             
             elements.uploadButtonB.addEventListener('click', () => elements.fileInputB.click());
             elements.fileInputB.addEventListener('change', (e) => handleFileUpload(e, 'B'));
 
-            // Text input
+            // Text input for comparison
             elements.textAreaA.addEventListener('input', () => handleTextInput('A'));
             elements.textAreaB.addEventListener('input', () => handleTextInput('B'));
 
             // Compare button
             elements.compareButton.addEventListener('click', compareNumbers);
+
+            // Single List Processor toggle
+            elements.singleListToggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+                elements.singleListContent.classList.toggle('active');
+            });
+
+            // Single List file upload
+            elements.singleUploadButton.addEventListener('click', () => elements.singleFileInput.click());
+            elements.singleFileInput.addEventListener('change', handleSingleFileUpload);
+            elements.singleFileArea.addEventListener('click', () => elements.singleFileInput.click());
+
+            // Single List text input
+            elements.singleListInput.addEventListener('input', handleSingleTextInput);
+
+            // Process Single List button
+            elements.processSingleList.addEventListener('click', processSingleList);
+
+            // Copy output button
+            elements.copyOutputButton.addEventListener('click', copyOutputToClipboard);
+
+            // Auto-open single list section
+            elements.singleListToggle.click();
 
             // Initial update
             updatePreview('A');
@@ -673,6 +941,42 @@
             });
         }
 
+        async function handleSingleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            state.singleList.file = file;
+            
+            const fileName = elements.singleFileName;
+            fileName.textContent = file.name;
+            
+            try {
+                // Read file content
+                const text = await readFileAsText(file);
+                elements.singleListInput.value = text;
+                state.singleList.text = text;
+                
+                // Auto-process the list
+                setTimeout(processSingleList, 500);
+            } catch (error) {
+                showError(`Error reading ${file.name}: ${error.message}`);
+            }
+        }
+
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    resolve(e.target.result);
+                };
+                
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                
+                reader.readAsText(file);
+            });
+        }
+
         function handleTextInput(section) {
             const text = elements[`textArea${section}`].value;
             state[section].text = text;
@@ -683,6 +987,11 @@
             
             updatePreview(section);
             updateCompareButton();
+        }
+
+        function handleSingleTextInput() {
+            const text = elements.singleListInput.value;
+            state.singleList.text = text;
         }
 
         async function extractNumbersFromFile(file) {
@@ -782,6 +1091,80 @@
             
             // Remove duplicates
             return [...new Set(flatNumbers)].sort((a, b) => a - b);
+        }
+
+        function processSingleList() {
+            const text = elements.singleListInput.value;
+            if (!text.trim()) {
+                showError('Please enter or upload a list to process');
+                return;
+            }
+            
+            // Split by lines
+            const lines = text.split('\n');
+            const processedNumbers = [];
+            
+            // Process each line
+            for (let line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                
+                // Check if the line contains a comma - this indicates it's a data number, not a line number
+                if (trimmed.includes(',')) {
+                    // Remove all commas from the number
+                    const cleanedNumber = trimmed.replace(/,/g, '');
+                    
+                    // Only add if it's a valid number (contains digits)
+                    if (/\d/.test(cleanedNumber)) {
+                        processedNumbers.push(cleanedNumber);
+                    }
+                }
+                // If no comma, check if it's a valid data number (at least 4 digits)
+                else if (/^\d{4,}$/.test(trimmed)) {
+                    // This handles cases where numbers might not have commas but are still data
+                    processedNumbers.push(trimmed);
+                }
+                // Skip line numbers (1, 2, 3, etc.) and any other non-data lines
+            }
+            
+            // Remove duplicates while preserving order
+            const uniqueNumbers = [...new Set(processedNumbers)];
+            
+            // Update state
+            state.singleList.processedNumbers = uniqueNumbers;
+            
+            // Update output
+            elements.singleListOutput.value = uniqueNumbers.join('\n');
+            elements.outputCount.textContent = uniqueNumbers.length;
+            
+            // Enable copy button if there's output
+            elements.copyOutputButton.disabled = uniqueNumbers.length === 0;
+            
+            // Show success message
+            if (uniqueNumbers.length > 0) {
+                showSuccess(`Processed ${uniqueNumbers.length} numbers successfully!`);
+            }
+        }
+
+        function copyOutputToClipboard() {
+            const output = elements.singleListOutput.value;
+            if (!output) return;
+            
+            navigator.clipboard.writeText(output).then(() => {
+                // Visual feedback
+                const originalText = elements.copyOutputButton.textContent;
+                elements.copyOutputButton.textContent = 'Copied!';
+                elements.copyOutputButton.style.background = '#34c759';
+                
+                setTimeout(() => {
+                    elements.copyOutputButton.textContent = 'Copy to Clipboard';
+                    elements.copyOutputButton.style.background = '';
+                }, 2000);
+                
+                showSuccess('Output copied to clipboard!');
+            }).catch(err => {
+                showError('Failed to copy to clipboard: ' + err.message);
+            });
         }
 
         function updatePreview(section) {
@@ -940,6 +1323,14 @@
             setTimeout(() => {
                 elements.errorMessage.style.display = 'none';
             }, 5000);
+        }
+
+        function showSuccess(message) {
+            elements.successMessage.textContent = message;
+            elements.successMessage.style.display = 'block';
+            setTimeout(() => {
+                elements.successMessage.style.display = 'none';
+            }, 3000);
         }
 
         function showLoading(show) {
