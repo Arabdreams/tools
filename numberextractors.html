@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phone Number Extractor</title>
+    <title>Phone Number Extractor – All files (CSV, Excel, TXT)</title>
+    <!-- SheetJS (XLSX) for Excel file parsing -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -398,15 +400,16 @@
 <body>
     <div class="container">
         <h1>Phone Number Extractor</h1>
-        <p class="subtitle">Extract and deduplicate phone numbers from WhatsApp exports</p>
+        <p class="subtitle">Extract and deduplicate phone numbers from CSV, Excel, TXT, or pasted text</p>
         
         <div class="input-section">
             <div class="upload-box">
                 <label class="upload-label" id="dropArea">
                     <div class="upload-icon">📁</div>
-                    <div class="upload-text">Upload CSV Files</div>
-                    <div class="upload-hint">Drop WhatsApp export CSV files or click to browse</div>
-                    <input type="file" id="fileInput" accept=".csv" multiple>
+                    <div class="upload-text">Upload Files</div>
+                    <div class="upload-hint">Drop CSV, Excel (.xlsx, .xls), .txt or click to browse</div>
+                    <!-- Accept multiple file types -->
+                    <input type="file" id="fileInput" accept=".csv,.txt,.xlsx,.xls,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" multiple>
                 </label>
             </div>
             
@@ -453,301 +456,338 @@
     </div>
 
     <script>
-        const fileInput = document.getElementById('fileInput');
-        const dropArea = document.getElementById('dropArea');
-        const pasteArea = document.getElementById('pasteArea');
-        const fileInfo = document.getElementById('fileInfo');
-        const fileName = document.getElementById('fileName');
-        const fileStats = document.getElementById('fileStats');
-        const extractBtn = document.getElementById('extractBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const loading = document.getElementById('loading');
-        const resultsSection = document.getElementById('resultsSection');
-        const phoneList = document.getElementById('phoneList');
-        const phoneCount = document.getElementById('phoneCount');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const removeSpacesToggle = document.getElementById('removeSpacesToggle');
-        
-        let selectedFiles = [];
-        let extractedNumbers = [];
-        let hasPastedContent = false;
-        
-        // Handle drag and drop
-        dropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropArea.style.borderColor = '#007AFF';
-            dropArea.style.background = '#f8f9ff';
-        });
-        
-        dropArea.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropArea.style.borderColor = '#d2d2d7';
-            dropArea.style.background = '#ffffff';
-        });
-        
-        dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropArea.style.borderColor = '#d2d2d7';
-            dropArea.style.background = '#ffffff';
+        (function() {
+            const fileInput = document.getElementById('fileInput');
+            const dropArea = document.getElementById('dropArea');
+            const pasteArea = document.getElementById('pasteArea');
+            const fileInfo = document.getElementById('fileInfo');
+            const fileName = document.getElementById('fileName');
+            const fileStats = document.getElementById('fileStats');
+            const extractBtn = document.getElementById('extractBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const loading = document.getElementById('loading');
+            const resultsSection = document.getElementById('resultsSection');
+            const phoneList = document.getElementById('phoneList');
+            const phoneCount = document.getElementById('phoneCount');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const removeSpacesToggle = document.getElementById('removeSpacesToggle');
             
-            const files = Array.from(e.dataTransfer.files).filter(file => 
-                file.name.toLowerCase().endsWith('.csv')
-            );
+            let selectedFiles = [];
+            let extractedNumbers = [];
+            let hasPastedContent = false;
             
-            if (files.length > 0) {
-                selectedFiles = files;
+            // Allowed file extensions for drop filter
+            const allowedExtensions = ['.csv', '.txt', '.xlsx', '.xls'];
+            
+            // Handle drag and drop
+            dropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropArea.style.borderColor = '#007AFF';
+                dropArea.style.background = '#f8f9ff';
+            });
+            
+            dropArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropArea.style.borderColor = '#d2d2d7';
+                dropArea.style.background = '#ffffff';
+            });
+            
+            dropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropArea.style.borderColor = '#d2d2d7';
+                dropArea.style.background = '#ffffff';
+                
+                const files = Array.from(e.dataTransfer.files).filter(file => {
+                    const ext = '.' + file.name.split('.').pop().toLowerCase();
+                    return allowedExtensions.includes(ext);
+                });
+                
+                if (files.length > 0) {
+                    selectedFiles = files;
+                    pasteArea.value = '';
+                    hasPastedContent = false;
+                    updateFileInfo();
+                } else {
+                    alert('Please drop CSV, TXT, or Excel files only');
+                }
+            });
+            
+            // Handle file input
+            fileInput.addEventListener('change', (e) => {
+                selectedFiles = Array.from(e.target.files);
                 pasteArea.value = '';
                 hasPastedContent = false;
                 updateFileInfo();
-            } else {
-                alert('Please drop CSV files only');
-            }
-        });
-        
-        // Handle file input
-        fileInput.addEventListener('change', (e) => {
-            selectedFiles = Array.from(e.target.files);
-            pasteArea.value = '';
-            hasPastedContent = false;
-            updateFileInfo();
-        });
-        
-        // Handle paste area changes
-        pasteArea.addEventListener('input', (e) => {
-            hasPastedContent = e.target.value.trim().length > 0;
-            if (hasPastedContent) {
-                selectedFiles = [];
-                fileInput.value = '';
-                updateFileInfo();
-            }
-        });
-        
-        // Update file info display
-        function updateFileInfo() {
-            if (selectedFiles.length > 0) {
-                fileInfo.classList.add('show');
-                fileName.textContent = selectedFiles.length === 1 
-                    ? selectedFiles[0].name 
-                    : `${selectedFiles.length} files selected`;
-                
-                const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
-                const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
-                fileStats.textContent = `${selectedFiles.length} CSV files, ${sizeMB} MB total`;
-                
-                extractBtn.disabled = false;
-                resetBtn.disabled = false;
-            } else if (hasPastedContent) {
-                fileInfo.classList.add('show');
-                fileName.textContent = 'Text input';
-                const lineCount = pasteArea.value.split('\n').filter(line => line.trim()).length;
-                fileStats.textContent = `${lineCount} lines of text`;
-                extractBtn.disabled = false;
-                resetBtn.disabled = false;
-            } else {
-                fileInfo.classList.remove('show');
-                extractBtn.disabled = true;
-                resetBtn.disabled = true;
-            }
-        }
-        
-        // Extract phone numbers
-        extractBtn.addEventListener('click', async () => {
-            if (selectedFiles.length === 0 && !hasPastedContent) return;
+            });
             
-            loading.style.display = 'block';
-            resultsSection.classList.remove('show');
-            extractedNumbers = [];
+            // Handle paste area changes
+            pasteArea.addEventListener('input', (e) => {
+                hasPastedContent = e.target.value.trim().length > 0;
+                if (hasPastedContent) {
+                    selectedFiles = [];
+                    fileInput.value = '';
+                    updateFileInfo();
+                }
+            });
             
-            try {
+            // Update file info display
+            function updateFileInfo() {
                 if (selectedFiles.length > 0) {
-                    // Process uploaded files
-                    for (const file of selectedFiles) {
-                        const text = await readFileAsText(file);
-                        const numbers = extractPhoneNumbersFromCSV(text);
+                    fileInfo.classList.add('show');
+                    fileName.textContent = selectedFiles.length === 1 
+                        ? selectedFiles[0].name 
+                        : `${selectedFiles.length} files selected`;
+                    
+                    const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+                    const sizeKB = (totalSize / 1024).toFixed(1);
+                    fileStats.textContent = `${selectedFiles.length} files (${sizeKB} KB) — ${selectedFiles.map(f => f.name.split('.').pop()).join(', ')}`;
+                    
+                    extractBtn.disabled = false;
+                    resetBtn.disabled = false;
+                } else if (hasPastedContent) {
+                    fileInfo.classList.add('show');
+                    fileName.textContent = 'Text input';
+                    const lineCount = pasteArea.value.split('\n').filter(line => line.trim()).length;
+                    fileStats.textContent = `${lineCount} lines of text`;
+                    extractBtn.disabled = false;
+                    resetBtn.disabled = false;
+                } else {
+                    fileInfo.classList.remove('show');
+                    extractBtn.disabled = true;
+                    resetBtn.disabled = true;
+                }
+            }
+            
+            // Extract phone numbers
+            extractBtn.addEventListener('click', async () => {
+                if (selectedFiles.length === 0 && !hasPastedContent) return;
+                
+                loading.style.display = 'block';
+                resultsSection.classList.remove('show');
+                extractedNumbers = [];
+                
+                try {
+                    if (selectedFiles.length > 0) {
+                        for (const file of selectedFiles) {
+                            const ext = file.name.split('.').pop().toLowerCase();
+                            
+                            if (ext === 'xlsx' || ext === 'xls') {
+                                // Process Excel file using SheetJS
+                                const numbers = await processExcelFile(file);
+                                extractedNumbers.push(...numbers);
+                            } else {
+                                // Process as text (CSV or TXT)
+                                const text = await readFileAsText(file);
+                                if (ext === 'csv') {
+                                    const numbers = extractPhoneNumbersFromCSV(text);
+                                    extractedNumbers.push(...numbers);
+                                } else {
+                                    // plain text
+                                    const numbers = extractPhoneNumbersFromText(text);
+                                    extractedNumbers.push(...numbers);
+                                }
+                            }
+                        }
+                    } else if (hasPastedContent) {
+                        const numbers = extractPhoneNumbersFromText(pasteArea.value);
                         extractedNumbers.push(...numbers);
                     }
-                } else if (hasPastedContent) {
-                    // Process pasted text
-                    const numbers = extractPhoneNumbersFromText(pasteArea.value);
-                    extractedNumbers.push(...numbers);
-                }
-                
-                // Clean and deduplicate numbers
-                extractedNumbers = cleanAndDeduplicateNumbers(extractedNumbers);
-                
-                displayResults();
-            } catch (error) {
-                alert('Error processing: ' + error.message);
-            } finally {
-                loading.style.display = 'none';
-            }
-        });
-        
-        // Read file as text
-        function readFileAsText(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.onerror = (e) => reject(e);
-                reader.readAsText(file);
-            });
-        }
-        
-        // Extract phone numbers from CSV text
-        function extractPhoneNumbersFromCSV(csvText) {
-            const numbers = [];
-            const lines = csvText.split('\n');
-            
-            // Skip header if present
-            let startIndex = lines[0].toLowerCase().includes('phone') ? 1 : 0;
-            
-            for (let i = startIndex; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                
-                // Simple CSV parsing (split by comma)
-                const columns = parseCSVLine(line);
-                if (columns.length > 0) {
-                    const firstCol = columns[0].trim();
                     
-                    // Check if it looks like a phone number
-                    if (isPhoneNumber(firstCol)) {
-                        numbers.push(firstCol);
-                    }
+                    // Clean and deduplicate numbers
+                    extractedNumbers = cleanAndDeduplicateNumbers(extractedNumbers);
+                    
+                    displayResults();
+                } catch (error) {
+                    alert('Error processing: ' + error.message);
+                    console.error(error);
+                } finally {
+                    loading.style.display = 'none';
                 }
-            }
+            });
             
-            return numbers;
-        }
-        
-        // Extract phone numbers from pasted text
-        function extractPhoneNumbersFromText(text) {
-            const numbers = [];
-            // Split by newlines, commas, or spaces
-            const potentialNumbers = text.split(/[\n,\s]+/);
-            
-            for (let num of potentialNumbers) {
-                num = num.trim();
-                if (num && isPhoneNumber(num)) {
-                    numbers.push(num);
-                }
-            }
-            
-            return numbers;
-        }
-        
-        // Clean and deduplicate phone numbers
-        function cleanAndDeduplicateNumbers(numbers) {
-            const cleaned = new Set();
-            
-            for (let num of numbers) {
-                // Remove all spaces if toggle is on
-                let cleanNum = removeSpacesToggle.checked ? 
-                    num.replace(/\s+/g, '') : 
-                    num.replace(/\s+/g, ' ').trim();
-                
-                // Keep "You" as a special case
-                if (cleanNum === 'You') {
-                    cleaned.add(cleanNum);
-                } 
-                // Only add if it looks like a valid phone number format
-                else if (isPhoneNumber(cleanNum)) {
-                    cleaned.add(cleanNum);
-                }
-            }
-            
-            return Array.from(cleaned);
-        }
-        
-        // Simple CSV line parser
-        function parseCSVLine(line) {
-            const result = [];
-            let inQuotes = false;
-            let currentField = '';
-            
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                const nextChar = line[i + 1];
-                
-                if (char === '"' && !inQuotes) {
-                    inQuotes = true;
-                } else if (char === '"' && inQuotes && nextChar === '"') {
-                    currentField += '"';
-                    i++; // Skip next quote
-                } else if (char === '"' && inQuotes) {
-                    inQuotes = false;
-                } else if (char === ',' && !inQuotes) {
-                    result.push(currentField);
-                    currentField = '';
-                } else {
-                    currentField += char;
-                }
-            }
-            
-            result.push(currentField);
-            return result;
-        }
-        
-        // Check if string looks like a phone number
-        function isPhoneNumber(str) {
-            if (str === 'You') return true;
-            
-            // More comprehensive phone number pattern
-            return /^[\+\d][\d\s\-\(\)\.\+]{4,}$/.test(str) && 
-                   str.replace(/[^\d]/g, '').length >= 5;
-        }
-        
-        // Display results
-        function displayResults() {
-            phoneList.innerHTML = '';
-            phoneCount.textContent = extractedNumbers.length.toLocaleString();
-            
-            if (extractedNumbers.length === 0) {
-                phoneList.innerHTML = '<div class="phone-item">No valid phone numbers found</div>';
-            } else {
-                extractedNumbers.forEach(number => {
-                    const div = document.createElement('div');
-                    div.className = 'phone-item';
-                    div.textContent = number;
-                    phoneList.appendChild(div);
+            // Read file as text (for CSV/TXT)
+            function readFileAsText(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = (e) => reject(e);
+                    reader.readAsText(file);
                 });
             }
             
-            resultsSection.classList.add('show');
-        }
-        
-        // Download CSV
-        downloadBtn.addEventListener('click', () => {
-            if (extractedNumbers.length === 0) return;
+            // Process Excel file with SheetJS
+            function processExcelFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            let allText = '';
+                            
+                            // Iterate through all sheets
+                            workbook.SheetNames.forEach(sheetName => {
+                                const sheet = workbook.Sheets[sheetName];
+                                // Convert sheet to CSV text internally to get all cell values as strings
+                                const csv = XLSX.utils.sheet_to_csv(sheet, { header: 1 });
+                                // csv is a string with lines, each line has comma-separated values
+                                // We'll just treat it as raw text for phone extraction
+                                allText += csv + '\n';
+                            });
+                            
+                            // Now extract phone numbers from the combined text
+                            const numbers = extractPhoneNumbersFromText(allText);
+                            resolve(numbers);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    };
+                    reader.onerror = (e) => reject(e);
+                    reader.readAsArrayBuffer(file);
+                });
+            }
             
-            const csvContent = "Phone Number\n" + extractedNumbers.join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
+            // Extract phone numbers from CSV text (original logic)
+            function extractPhoneNumbersFromCSV(csvText) {
+                const numbers = [];
+                const lines = csvText.split('\n');
+                
+                // Skip header if present (simple heuristic)
+                let startIndex = 0;
+                if (lines.length > 0 && lines[0].toLowerCase().includes('phone')) startIndex = 1;
+                
+                for (let i = startIndex; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const columns = parseCSVLine(line);
+                    if (columns.length > 0) {
+                        const firstCol = columns[0].trim();
+                        if (isPhoneNumber(firstCol)) {
+                            numbers.push(firstCol);
+                        }
+                    }
+                }
+                return numbers;
+            }
             
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'phone_numbers_cleaned.csv';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        });
-        
-        // Reset
-        resetBtn.addEventListener('click', () => {
-            selectedFiles = [];
-            fileInput.value = '';
-            pasteArea.value = '';
-            hasPastedContent = false;
-            fileInfo.classList.remove('show');
-            resultsSection.classList.remove('show');
-            extractBtn.disabled = true;
-            resetBtn.disabled = true;
-            loading.style.display = 'none';
-        });
-        
-        // Initialize
-        updateFileInfo();
+            // Extract phone numbers from plain text (split by any whitespace/comma)
+            function extractPhoneNumbersFromText(text) {
+                const numbers = [];
+                // Split by newlines, commas, spaces, tabs
+                const tokens = text.split(/[\n,\s]+/);
+                for (let token of tokens) {
+                    token = token.trim();
+                    if (token && isPhoneNumber(token)) {
+                        numbers.push(token);
+                    }
+                }
+                return numbers;
+            }
+            
+            // Clean and deduplicate phone numbers (respect toggle)
+            function cleanAndDeduplicateNumbers(numbers) {
+                const cleaned = new Set();
+                for (let num of numbers) {
+                    let cleanNum = removeSpacesToggle.checked ? 
+                        num.replace(/\s+/g, '') : 
+                        num.replace(/\s+/g, ' ').trim();
+                    
+                    if (cleanNum === 'You') {
+                        cleaned.add(cleanNum);
+                    } else if (isPhoneNumber(cleanNum)) {
+                        cleaned.add(cleanNum);
+                    }
+                }
+                return Array.from(cleaned);
+            }
+            
+            // Simple CSV line parser (handles quotes)
+            function parseCSVLine(line) {
+                const result = [];
+                let inQuotes = false;
+                let currentField = '';
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    const nextChar = line[i + 1];
+                    
+                    if (char === '"' && !inQuotes) {
+                        inQuotes = true;
+                    } else if (char === '"' && inQuotes && nextChar === '"') {
+                        currentField += '"';
+                        i++;
+                    } else if (char === '"' && inQuotes) {
+                        inQuotes = false;
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(currentField);
+                        currentField = '';
+                    } else {
+                        currentField += char;
+                    }
+                }
+                result.push(currentField);
+                return result;
+            }
+            
+            // Check if string looks like a phone number
+            function isPhoneNumber(str) {
+                if (str === 'You') return true;
+                // At least 5 digits, and only digits, spaces, +, -, ., (, )
+                return /^[\+\d][\d\s\-\(\)\.\+]{4,}$/.test(str) && 
+                       str.replace(/[^\d]/g, '').length >= 5;
+            }
+            
+            // Display results
+            function displayResults() {
+                phoneList.innerHTML = '';
+                phoneCount.textContent = extractedNumbers.length.toLocaleString();
+                
+                if (extractedNumbers.length === 0) {
+                    phoneList.innerHTML = '<div class="phone-item">No valid phone numbers found</div>';
+                } else {
+                    extractedNumbers.forEach(number => {
+                        const div = document.createElement('div');
+                        div.className = 'phone-item';
+                        div.textContent = number;
+                        phoneList.appendChild(div);
+                    });
+                }
+                
+                resultsSection.classList.add('show');
+            }
+            
+            // Download CSV
+            downloadBtn.addEventListener('click', () => {
+                if (extractedNumbers.length === 0) return;
+                const csvContent = "Phone Number\n" + extractedNumbers.join("\n");
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'phone_numbers_cleaned.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+            
+            // Reset
+            resetBtn.addEventListener('click', () => {
+                selectedFiles = [];
+                fileInput.value = '';
+                pasteArea.value = '';
+                hasPastedContent = false;
+                fileInfo.classList.remove('show');
+                resultsSection.classList.remove('show');
+                extractBtn.disabled = true;
+                resetBtn.disabled = true;
+                loading.style.display = 'none';
+            });
+            
+            // Initialize
+            updateFileInfo();
+        })();
     </script>
 </body>
 </html>
