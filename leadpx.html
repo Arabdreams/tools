@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadPX — Lead Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mona+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --white: #ffffff;
+  --off: #f5f5f7;
+  --subtle: #e8e8ed;
+  --muted: #d2d2d7;
+  --ink3: #a1a1a6;
+  --ink2: #6e6e73;
+  --ink1: #1d1d1f;
+  --blue: #0071e3;
+  --blue-dk: #0058b0;
+  --blue-lt: #eaf2ff;
+  --green: #1a7c34;
+  --green-lt: #e6f9ed;
+  --border: rgba(0,0,0,0.07);
+  --r: 20px;
+  --rs: 12px;
+  --rx: 8px;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Mona Sans', -apple-system, 'Helvetica Neue', sans-serif;
+  background: var(--white); color: var(--ink1);
+  min-height: 100vh; -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 56px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  background: rgba(255,255,255,0.86);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+}
+.logo { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; color: var(--ink1); text-decoration: none; }
+.logo b { color: var(--blue); }
+.nav-tag {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.6px; text-transform: uppercase;
+  color: var(--ink3); background: var(--off); border: 1px solid var(--muted);
+  padding: 4px 10px; border-radius: 40px;
+}
+
+/* PAGE */
+.page { max-width: 720px; margin: 0 auto; padding: 0 24px 120px; }
+
+/* HERO */
+.hero { padding: 148px 0 60px; text-align: center; }
+.hero-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11.5px; font-weight: 600; letter-spacing: 0.9px;
+  text-transform: uppercase; color: var(--blue); margin-bottom: 22px;
+  opacity: 0; animation: up 0.5s ease 0.05s forwards;
+}
+.hero-label::before, .hero-label::after {
+  content: ''; width: 22px; height: 1px; background: currentColor; opacity: 0.35;
+}
+.hero h1 {
+  font-size: clamp(46px, 9vw, 76px); font-weight: 700;
+  letter-spacing: -3px; line-height: 1.02; color: var(--ink1); margin-bottom: 20px;
+  opacity: 0; animation: up 0.5s ease 0.13s forwards;
+}
+.hero h1 i { font-style: normal; color: var(--blue); }
+.hero p {
+  font-size: 18px; font-weight: 300; color: var(--ink2);
+  line-height: 1.65; max-width: 460px; margin: 0 auto;
+  opacity: 0; animation: up 0.5s ease 0.22s forwards;
+}
+
+/* UPLOAD ZONE */
+.section { margin-top: 10px; opacity: 0; animation: up 0.5s ease 0.32s forwards; }
+.upload-zone {
+  position: relative; border: 1.5px dashed var(--muted);
+  border-radius: var(--r); padding: 52px 32px; text-align: center;
+  cursor: pointer; background: var(--off);
+  transition: border-color 0.2s, background 0.2s, transform 0.15s; overflow: hidden;
+}
+.upload-zone:hover, .upload-zone.drag {
+  border-color: var(--blue); background: var(--blue-lt);
+}
+.upload-zone.drag { transform: scale(1.01); }
+.upload-zone input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.uz-icon {
+  width: 56px; height: 56px; margin: 0 auto 16px;
+  background: var(--blue); border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s;
+}
+.upload-zone:hover .uz-icon, .upload-zone.drag .uz-icon { transform: translateY(-3px); }
+.uz-title { font-size: 16px; font-weight: 600; color: var(--ink1); margin-bottom: 5px; }
+.uz-sub { font-size: 13px; color: var(--ink3); }
+.uz-sub b { color: var(--blue); font-weight: 500; }
+
+/* FILE PILLS */
+.file-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.pill {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--rs); padding: 12px 14px;
+  animation: up 0.22s ease forwards;
+}
+.pill-ico {
+  width: 38px; height: 38px; flex-shrink: 0;
+  background: var(--blue-lt); border-radius: var(--rx);
+  display: flex; align-items: center; justify-content: center;
+}
+.pill-name { flex: 1; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pill-rows { font-size: 12px; color: var(--ink3); flex-shrink: 0; }
+.pill-rm {
+  width: 26px; height: 26px; flex-shrink: 0;
+  background: var(--subtle); border: none; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.pill-rm:hover { background: #ffd0cd; }
+
+/* STATS */
+.stats {
+  display: none; grid-template-columns: repeat(3,1fr);
+  background: var(--off); border-radius: var(--rs);
+  overflow: hidden; border: 1px solid var(--border);
+}
+.stats.on { display: grid; }
+.stat { padding: 18px; text-align: center; }
+.stat + .stat { border-left: 1px solid var(--border); }
+.stat-n { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+.stat-l { font-size: 11px; color: var(--ink3); margin-top: 3px; letter-spacing: 0.2px; }
+
+/* CONTROLS */
+.bar { display: flex; align-items: center; justify-content: space-between; }
+.bar-label { font-size: 13px; font-weight: 500; color: var(--ink2); }
+.toggle { display: flex; background: var(--subtle); border-radius: 10px; padding: 3px; gap: 2px; }
+.tog {
+  padding: 7px 18px; border-radius: 8px; border: none;
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  background: transparent; color: var(--ink2); transition: all 0.18s; font-family: inherit;
+}
+.tog.on { background: var(--white); color: var(--ink1); box-shadow: 0 1px 5px rgba(0,0,0,0.09); }
+
+/* BUTTONS */
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 26px; border-radius: 980px; font-size: 15px; font-weight: 600;
+  cursor: pointer; border: none; letter-spacing: -0.1px;
+  transition: all 0.18s; font-family: inherit;
+}
+.btn-p { background: var(--blue); color: white; }
+.btn-p:hover { background: var(--blue-dk); transform: scale(1.015); }
+.btn-p:active { transform: scale(0.985); }
+.btn-s { background: var(--subtle); color: var(--ink1); }
+.btn-s:hover { background: var(--muted); }
+.btn:disabled { opacity: 0.38; cursor: not-allowed; transform: none !important; }
+
+/* DIVIDER */
+.div-line { height: 1px; background: var(--border); }
+
+/* PREVIEW */
+.preview { display: none; }
+.preview.on { display: block; }
+.prev-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.prev-title { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--ink3); }
+.prev-count { font-size: 12px; color: var(--ink3); }
+.tbl-wrap { overflow-x: auto; border-radius: var(--rs); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 720px; }
+thead { background: var(--off); }
+th {
+  padding: 9px 13px; font-weight: 600; color: var(--ink2); text-align: left;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+td { padding: 10px 13px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--blue-lt); }
+.bx { display: inline-block; padding: 2px 9px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.bx-ig { background: #f3e8ff; color: #7b21b5; }
+.bx-fb { background: var(--blue-lt); color: var(--blue-dk); }
+.bx-c  { background: var(--blue-lt); color: var(--blue-dk); font-size: 10.5px; }
+.bx-g  { background: var(--green-lt); color: var(--green); }
+
+/* TOAST */
+#toasts {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 8px; align-items: center;
+  z-index: 999; pointer-events: none;
+}
+.toast {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(29,29,31,0.93); color: white;
+  padding: 11px 22px; border-radius: 980px;
+  font-size: 13.5px; font-weight: 500; white-space: nowrap;
+  backdrop-filter: blur(20px);
+  animation: tin 0.28s ease, tout 0.28s ease 2.6s forwards;
+  pointer-events: auto;
+}
+.t-ok::before  { content: '✓ '; color: #4cd964; font-weight: 800; }
+.t-err::before { content: '✕ '; color: #ff5f57; font-weight: 800; }
+
+/* FOOTER */
+footer {
+  text-align: center; padding: 56px 24px 32px;
+  font-size: 12px; color: var(--ink3);
+  border-top: 1px solid var(--border); margin-top: 80px;
+}
+
+/* SPACING */
+.g4  { height:4px;  }
+.g8  { height:8px;  }
+.g16 { height:16px; }
+.g24 { height:24px; }
+
+/* KEYFRAMES */
+@keyframes up  { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+@keyframes tin  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+@keyframes tout { from { opacity:1; } to { opacity:0; } }
+
+@media (max-width: 540px) {
+  nav { padding: 0 18px; }
+  .hero { padding: 116px 0 44px; }
+  .hero h1 { letter-spacing: -2px; }
+  .upload-zone { padding: 38px 18px; }
+  .btn { padding: 12px 20px; font-size: 14px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#"><b>Lead</b>PX</a>
+  <span class="nav-tag">Meta → CRM Converter</span>
+</nav>
+
+<div class="page">
+
+  <div class="hero">
+    <div class="hero-label">Noora Graphic · Lead Tools</div>
+    <h1>Raw leads.<br><i>Refined.</i></h1>
+    <p>Drop your Meta CSV exports. Get clean, CRM-ready files instantly.</p>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="section">
+    <div class="upload-zone" id="zone">
+      <input type="file" id="filein" accept=".csv,.tsv,.txt,.xls,.xlsx,text/plain,text/csv,text/tab-separated-values" multiple>
+      <div class="uz-icon">
+        <svg width="26" height="26" fill="none" stroke="white" stroke-width="2.2" viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <div class="uz-title">Drop Meta CSV files here</div>
+      <div class="uz-sub">or <b>click to browse</b> · CSV, TXT, TSV and more</div>
+    </div>
+  </div>
+
+  <!-- FILE LIST -->
+  <div class="file-list" id="fileList"></div>
+
+  <div class="g8"></div>
+
+  <!-- STATS -->
+  <div class="stats" id="stats">
+    <div class="stat"><div class="stat-n" id="sFiles">0</div><div class="stat-l">Files</div></div>
+    <div class="stat"><div class="stat-n" id="sLeads">0</div><div class="stat-l">Leads</div></div>
+    <div class="stat"><div class="stat-n" id="sCourses">0</div><div class="stat-l">Courses</div></div>
+  </div>
+
+  <div class="g16"></div>
+
+  <!-- CONTROLS + BUTTONS -->
+  <div class="section">
+    <div class="bar">
+      <span class="bar-label">Download as</span>
+      <div class="toggle">
+        <button class="tog on" onclick="setMode('combined',this)">Combined</button>
+        <button class="tog"    onclick="setMode('separate',this)">Separate</button>
+      </div>
+    </div>
+    <div class="g16"></div>
+    <div class="actions">
+      <button class="btn btn-p" id="dlBtn" onclick="doDownload()" disabled>
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span id="dlLabel">Download CSV</span>
+      </button>
+      <button class="btn btn-s" onclick="clearAll()">Clear all</button>
+    </div>
+  </div>
+
+  <div class="g24"></div>
+  <div class="div-line"></div>
+  <div class="g24"></div>
+
+  <!-- PREVIEW TABLE -->
+  <div class="preview" id="preview">
+    <div class="prev-head">
+      <span class="prev-title">Preview</span>
+      <span class="prev-count" id="prevCount"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Source</th><th>Name</th><th>Phone</th>
+            <th>Stage</th><th>Status</th><th>Lead Created At</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<footer>LeadPX · Built for Noora Graphic · Converts Meta Lead Ads CSV → CRM format</footer>
+<div id="toasts"></div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────
+// ── OUTPUT COLUMNS — exact LeadPixie bulk import format ──
+const OUT_COLS = [
+  'Source','Name','Phone','Email','Stage','Status',
+  'Sub Status','Lead Created At','Owner',
+  'First Contacted On','Last Contacted On','Next Followup On'
+];
+
+const CNAME = {
+  'graphic_designing_+_video_editing_(4_months)':     'Graphic Design + Video Editing',
+  'digital_marketing_+_graphic_designing_(8_months)': 'Digital Marketing + Graphic Design',
+  'digital_marketing_(4_months)':                     'Digital Marketing',
+};
+const CDUR = {
+  'graphic_designing_+_video_editing_(4_months)':     '4 Months',
+  'digital_marketing_+_graphic_designing_(8_months)': '8 Months',
+  'digital_marketing_(4_months)':                     '4 Months',
+};
+
+// ── STATE ────────────────────────────────────────────────
+let FILES = [];
+let MODE  = 'combined';
+
+// ── DRAG & DROP ──────────────────────────────────────────
+const zone  = document.getElementById('zone');
+const filein = document.getElementById('filein');
+
+zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); handle([...e.dataTransfer.files]); });
+filein.addEventListener('change', () => { handle([...filein.files]); filein.value = ''; });
+
+async function handle(list) {
+  // Accept by extension — csv, txt, tsv, tab, or any text/* MIME
+  const ALLOWED = /\.(csv|tsv|txt|tab)$/i;
+  const valid = list.filter(f => ALLOWED.test(f.name) || f.type.startsWith('text/'));
+  const skipped = list.filter(f => !ALLOWED.test(f.name) && !f.type.startsWith('text/'));
+  if (skipped.length) skipped.forEach(f => toast(`Skipped ${f.name} — unsupported type`, 'err'));
+  if (!valid.length) { toast('Drop a CSV, TXT or TSV file', 'err'); return; }
+
+  for (const f of valid) {
+    if (FILES.find(x => x.name === f.name)) { toast(`${f.name} already added`, 'err'); continue; }
+    try {
+      const rows = await parseFile(f);
+      if (!rows.length) { toast(`${f.name} — no leads found`, 'err'); continue; }
+      FILES.push({ name: f.name, parsed: rows });
+      toast(`${f.name} — ${rows.length} leads loaded`, 'ok');
+    } catch(e) {
+      console.error('Parse error:', f.name, e);
+      toast(`Could not parse ${f.name}`, 'err');
+    }
+  }
+  render();
+}
+
+// ── PARSE ────────────────────────────────────────────────
+function parseFile(file) {
+  return new Promise((res, rej) => {
+    // Read raw bytes first so we can detect BOM and encoding
+    const rb = new FileReader();
+    rb.onerror = () => rej(new Error('read error'));
+    rb.onload = e => {
+      const buf   = e.target.result;
+      const bytes = new Uint8Array(buf);
+
+      // Detect UTF-16 LE BOM: 0xFF 0xFE
+      const isUtf16LE = bytes[0] === 0xFF && bytes[1] === 0xFE;
+      // Detect UTF-16 BE BOM: 0xFE 0xFF
+      const isUtf16BE = bytes[0] === 0xFE && bytes[1] === 0xFF;
+
+      if (isUtf16LE || isUtf16BE) {
+        // Decode as UTF-16
+        const enc  = isUtf16LE ? 'utf-16le' : 'utf-16be';
+        const dec  = new TextDecoder(enc);
+        const text = dec.decode(buf);
+        try { res(parseText(text)); }
+        catch(err) { rej(err); }
+      } else {
+        // Try UTF-8 (covers ASCII too)
+        const dec  = new TextDecoder('utf-8');
+        const text = dec.decode(buf);
+        try { res(parseText(text)); }
+        catch(err) { rej(err); }
+      }
+    };
+    rb.readAsArrayBuffer(file);
+  });
+}
+
+function parseText(raw) {
+  const txt   = raw.replace(/^\uFEFF/, '');
+  const lines = txt.split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) throw new Error('empty');
+
+  const sep  = lines[0].includes('\t') ? '\t' : ',';
+  const hdrs = splitLine(lines[0], sep).map(h => h.replace(/^"+|"+$/g,'').trim().toLowerCase());
+
+  return lines.slice(1).map(l => {
+    const vals = splitLine(l, sep);
+    if (vals.length < 3) return null;
+    const obj = {};
+    hdrs.forEach((h, j) => obj[h] = (vals[j]||'').replace(/^"+|"+$/g,'').trim());
+    return transform(obj);
+  }).filter(Boolean);
+}
+
+function splitLine(line, sep) {
+  const out = []; let cur = '', inQ = false;
+  for (const c of line) {
+    if (c === '"') inQ = !inQ;
+    else if (c === sep && !inQ) { out.push(cur); cur = ''; }
+    else cur += c;
+  }
+  return [...out, cur];
+}
+
+// ── TRANSFORM (INPUT → OUTPUT columns) ──────────────────
+function normalizePhone(raw) {
+  // Strip Meta prefix "p:" only — keep +91 as LeadPixie expects it
+  let p = (raw || '').replace(/^p:/i, '').trim();
+  // Remove spaces/dashes
+  p = p.replace(/[\s\-]/g, '');
+  // Ensure + prefix for numbers that have 91 but no +
+  if (/^91\d{10}$/.test(p)) p = '+' + p;
+  // If already has +, keep as-is
+  return p;
+}
+
+function normalizeDate(raw) {
+  // LeadPixie expects: YYYY-MM-DD (date only, no time)
+  try {
+    const d = new Date(raw);
+    if (isNaN(d)) return raw;
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  } catch { return raw; }
+}
+
+function transform(r) {
+  const phone   = normalizePhone(r['phone_number']);
+  const dateStr = normalizeDate(r['created_time']);
+
+  const row = {};
+  OUT_COLS.forEach(k => row[k] = '');
+  row['Source']          = 'meta';
+  row['Name']            = (r['full_name'] || '').trim();
+  row['Phone']           = phone;
+  row['Email']           = '';
+  row['Stage']           = 'Lead';
+  row['Status']          = 'Not Set';
+  row['Sub Status']      = '';
+  row['Lead Created At'] = dateStr;
+  row['Owner']           = '';
+  row['First Contacted On']  = '';
+  row['Last Contacted On']   = '';
+  row['Next Followup On']    = '';
+  return row;
+}
+
+// ── RENDER ───────────────────────────────────────────────
+function render() {
+  const all = FILES.flatMap(f => f.parsed);
+
+  // Pills
+  document.getElementById('fileList').innerHTML = FILES.map((f,i) => `
+    <div class="pill">
+      <div class="pill-ico">
+        <svg width="18" height="18" fill="none" stroke="#0071e3" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+      </div>
+      <span class="pill-name">${esc(f.name)}</span>
+      <span class="pill-rows">${f.parsed.length} leads</span>
+      <button class="pill-rm" onclick="removeFile(${i})">
+        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>`).join('');
+
+  // Stats
+  document.getElementById('sFiles').textContent   = FILES.length;
+  document.getElementById('sLeads').textContent   = all.length;
+  document.getElementById('sCourses').textContent = new Set(all.map(r => r['Interested Course'])).size;
+  document.getElementById('stats').classList.toggle('on', FILES.length > 0);
+
+  // Btn label
+  const btn = document.getElementById('dlBtn');
+  btn.disabled = !FILES.length;
+  document.getElementById('dlLabel').textContent =
+    MODE === 'separate' && FILES.length > 1 ? `Download ${FILES.length} Files` : 'Download CSV';
+
+  // Preview
+  const prev = document.getElementById('preview');
+  if (all.length) {
+    prev.classList.add('on');
+    const show = all.slice(0,12);
+    document.getElementById('prevCount').textContent = `Showing ${show.length} of ${all.length}`;
+    document.getElementById('tbody').innerHTML = show.map((r,i) => `
+      <tr>
+        <td style="color:var(--ink3)">${i+1}</td>
+        <td><span class="bx bx-ig">${esc(r['Source'])}</span></td>
+        <td style="font-weight:600">${esc(r['Name']) || '—'}</td>
+        <td style="font-family:monospace;font-size:11.5px">${esc(r['Phone'])}</td>
+        <td><span class="bx bx-g">${esc(r['Stage'])}</span></td>
+        <td style="color:var(--ink2)">${esc(r['Status'])}</td>
+        <td style="color:var(--ink3);font-size:11px;font-family:monospace">${esc(r['Lead Created At'])}</td>
+      </tr>`).join('');
+  } else {
+    prev.classList.remove('on');
+  }
+}
+
+// ── ACTIONS ──────────────────────────────────────────────
+function removeFile(i) { FILES.splice(i,1); render(); }
+function clearAll()    { FILES = []; render(); document.getElementById('preview').classList.remove('on'); }
+function setMode(m, btn) {
+  MODE = m;
+  document.querySelectorAll('.tog').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on'); render();
+}
+
+// ── DOWNLOAD ─────────────────────────────────────────────
+function doDownload() {
+  if (!FILES.length) return;
+  const btn = document.getElementById('dlBtn');
+  const lbl = document.getElementById('dlLabel');
+  btn.disabled = true;
+  lbl.textContent = 'Preparing…';
+
+  setTimeout(() => {
+    try {
+      if (MODE === 'separate') {
+        FILES.forEach(f => {
+          const ext = /\.[^.]+$/.exec(f.name)?.[0] || '';
+          const base = f.name.slice(0, f.name.length - ext.length);
+          grab(toCSV(f.parsed), `LeadPX_${base}_clean.csv`);
+        });
+        toast(`${FILES.length} file${FILES.length > 1 ? 's' : ''} downloaded`, 'ok');
+      } else {
+        const all = FILES.flatMap(f => f.parsed);
+        if (!all.length) { toast('No data to download', 'err'); return; }
+        grab(toCSV(all), `LeadPX_Leads_${new Date().toISOString().slice(0,10)}.csv`);
+        toast(`${all.length} leads downloaded`, 'ok');
+      }
+    } catch(e) {
+      console.error('Download error:', e);
+      toast('Download failed — ' + (e.message || 'try again'), 'err');
+    } finally {
+      btn.disabled = false;
+      render();
+    }
+  }, 150);
+}
+
+function toCSV(rows) {
+  if (!rows.length) return '';
+  const q = v => `"${String(v??'').replace(/"/g,'""')}"`;
+  return '\uFEFF' + [OUT_COLS.map(q).join(','), ...rows.map(r => OUT_COLS.map(c => q(r[c])).join(','))].join('\r\n');
+}
+
+function grab(content, filename) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 3000);
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function esc(s) {
+  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function toast(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = `toast t-${type}`;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+</script>
+</body>
+</html>
