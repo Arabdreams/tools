@@ -35,7 +35,6 @@ body {
   min-height: 100vh; -webkit-font-smoothing: antialiased; overflow-x: hidden;
 }
 
-/* NAV */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 200;
   height: 56px; display: flex; align-items: center; justify-content: space-between;
@@ -53,10 +52,8 @@ nav {
   padding: 4px 10px; border-radius: 40px;
 }
 
-/* PAGE */
 .page { max-width: 720px; margin: 0 auto; padding: 0 24px 120px; }
 
-/* HERO */
 .hero { padding: 148px 0 60px; text-align: center; }
 .hero-label {
   display: inline-flex; align-items: center; gap: 8px;
@@ -79,7 +76,6 @@ nav {
   opacity: 0; animation: up 0.5s ease 0.22s forwards;
 }
 
-/* UPLOAD ZONE */
 .section { margin-top: 10px; opacity: 0; animation: up 0.5s ease 0.32s forwards; }
 .upload-zone {
   position: relative; border: 1.5px dashed var(--muted);
@@ -103,7 +99,6 @@ nav {
 .uz-sub { font-size: 13px; color: var(--ink3); }
 .uz-sub b { color: var(--blue); font-weight: 500; }
 
-/* FILE PILLS */
 .file-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .pill {
   display: flex; align-items: center; gap: 12px;
@@ -126,7 +121,6 @@ nav {
 }
 .pill-rm:hover { background: #ffd0cd; }
 
-/* STATS */
 .stats {
   display: none; grid-template-columns: repeat(3,1fr);
   background: var(--off); border-radius: var(--rs);
@@ -138,7 +132,6 @@ nav {
 .stat-n { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
 .stat-l { font-size: 11px; color: var(--ink3); margin-top: 3px; letter-spacing: 0.2px; }
 
-/* CONTROLS */
 .bar { display: flex; align-items: center; justify-content: space-between; }
 .bar-label { font-size: 13px; font-weight: 500; color: var(--ink2); }
 .toggle { display: flex; background: var(--subtle); border-radius: 10px; padding: 3px; gap: 2px; }
@@ -149,7 +142,6 @@ nav {
 }
 .tog.on { background: var(--white); color: var(--ink1); box-shadow: 0 1px 5px rgba(0,0,0,0.09); }
 
-/* BUTTONS */
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
@@ -164,10 +156,8 @@ nav {
 .btn-s:hover { background: var(--muted); }
 .btn:disabled { opacity: 0.38; cursor: not-allowed; transform: none !important; }
 
-/* DIVIDER */
 .div-line { height: 1px; background: var(--border); }
 
-/* PREVIEW */
 .preview { display: none; }
 .preview.on { display: block; }
 .prev-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
@@ -186,11 +176,8 @@ tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--blue-lt); }
 .bx { display: inline-block; padding: 2px 9px; border-radius: 6px; font-size: 11px; font-weight: 600; }
 .bx-ig { background: #f3e8ff; color: #7b21b5; }
-.bx-fb { background: var(--blue-lt); color: var(--blue-dk); }
-.bx-c  { background: var(--blue-lt); color: var(--blue-dk); font-size: 10.5px; }
 .bx-g  { background: var(--green-lt); color: var(--green); }
 
-/* TOAST */
 #toasts {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
   display: flex; flex-direction: column; gap: 8px; align-items: center;
@@ -208,20 +195,17 @@ tr:hover td { background: var(--blue-lt); }
 .t-ok::before  { content: '✓ '; color: #4cd964; font-weight: 800; }
 .t-err::before { content: '✕ '; color: #ff5f57; font-weight: 800; }
 
-/* FOOTER */
 footer {
   text-align: center; padding: 56px 24px 32px;
   font-size: 12px; color: var(--ink3);
   border-top: 1px solid var(--border); margin-top: 80px;
 }
 
-/* SPACING */
 .g4  { height:4px;  }
 .g8  { height:8px;  }
 .g16 { height:16px; }
 .g24 { height:24px; }
 
-/* KEYFRAMES */
 @keyframes up  { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
 @keyframes tin  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
 @keyframes tout { from { opacity:1; } to { opacity:0; } }
@@ -250,7 +234,6 @@ footer {
     <p>Drop your Meta CSV exports. Get clean, CRM-ready files instantly.</p>
   </div>
 
-  <!-- UPLOAD -->
   <div class="section">
     <div class="upload-zone" id="zone">
       <input type="file" id="filein" accept=".csv,.tsv,.txt,.xls,.xlsx,text/plain,text/csv,text/tab-separated-values" multiple>
@@ -265,12 +248,9 @@ footer {
     </div>
   </div>
 
-  <!-- FILE LIST -->
   <div class="file-list" id="fileList"></div>
-
   <div class="g8"></div>
 
-  <!-- STATS -->
   <div class="stats" id="stats">
     <div class="stat"><div class="stat-n" id="sFiles">0</div><div class="stat-l">Files</div></div>
     <div class="stat"><div class="stat-n" id="sLeads">0</div><div class="stat-l">Leads</div></div>
@@ -279,7 +259,6 @@ footer {
 
   <div class="g16"></div>
 
-  <!-- CONTROLS + BUTTONS -->
   <div class="section">
     <div class="bar">
       <span class="bar-label">Download as</span>
@@ -305,7 +284,6 @@ footer {
   <div class="div-line"></div>
   <div class="g24"></div>
 
-  <!-- PREVIEW TABLE -->
   <div class="preview" id="preview">
     <div class="prev-head">
       <span class="prev-title">Preview</span>
@@ -315,8 +293,8 @@ footer {
       <table>
         <thead>
           <tr>
-            <th>#</th><th>Source</th><th>Name</th><th>Phone</th>
-            <th>Stage</th><th>Status</th><th>Lead Created At</th>
+            <th>#</th><th>Name</th><th>Phone</th>
+            <th>Interested Course</th><th>Stage</th><th>Status</th><th>Lead Created At</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -330,19 +308,50 @@ footer {
 <div id="toasts"></div>
 
 <script>
-// ── CONFIG ───────────────────────────────────────────────
-// ── OUTPUT COLUMNS — exact LeadPixie bulk import format ──
+// ── OUTPUT COLUMNS — match LeadPixie sample CSV exactly ──
 const OUT_COLS = [
-  'Source','Name','Phone','Email','Stage','Status',
-  'Sub Status','Lead Created At','Owner',
-  'First Contacted On','Last Contacted On','Next Followup On'
+  'Phone',
+  'Friendly ID',
+  'WhatsApp Number',
+  'Alternate Phone Number',
+  'UTM Source',
+  'UTM Medium',
+  'Created At',
+  'UTM Campaign',
+  'Next Followup On',
+  'Last Interaction',
+  'Lead Created At',
+  'Name',
+  'City',
+  'State',
+  'Country',
+  'Status',
+  'Sub Status',
+  'Stage',
+  'Language',
+  'Owner',
+  'Email',
+  'Highest Qualification',
+  'Year of Passing',
+  'Mode of Study',
+  'Emergency Contact Name',
+  'Emergency Contact Number',
+  'Address',
+  'Course Duration',
+  'Gender',
+  'Counseling Scheduled Date',
+  'Enrolled Date',
+  'Interested Course',
+  'Source'
 ];
 
+// Course slug → readable name
 const CNAME = {
   'graphic_designing_+_video_editing_(4_months)':     'Graphic Design + Video Editing',
   'digital_marketing_+_graphic_designing_(8_months)': 'Digital Marketing + Graphic Design',
   'digital_marketing_(4_months)':                     'Digital Marketing',
 };
+// Course slug → duration
 const CDUR = {
   'graphic_designing_+_video_editing_(4_months)':     '4 Months',
   'digital_marketing_+_graphic_designing_(8_months)': '8 Months',
@@ -354,7 +363,7 @@ let FILES = [];
 let MODE  = 'combined';
 
 // ── DRAG & DROP ──────────────────────────────────────────
-const zone  = document.getElementById('zone');
+const zone   = document.getElementById('zone');
 const filein = document.getElementById('filein');
 
 zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag'); });
@@ -363,9 +372,8 @@ zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('
 filein.addEventListener('change', () => { handle([...filein.files]); filein.value = ''; });
 
 async function handle(list) {
-  // Accept by extension — csv, txt, tsv, tab, or any text/* MIME
   const ALLOWED = /\.(csv|tsv|txt|tab)$/i;
-  const valid = list.filter(f => ALLOWED.test(f.name) || f.type.startsWith('text/'));
+  const valid   = list.filter(f => ALLOWED.test(f.name) || f.type.startsWith('text/'));
   const skipped = list.filter(f => !ALLOWED.test(f.name) && !f.type.startsWith('text/'));
   if (skipped.length) skipped.forEach(f => toast(`Skipped ${f.name} — unsupported type`, 'err'));
   if (!valid.length) { toast('Drop a CSV, TXT or TSV file', 'err'); return; }
@@ -388,40 +396,38 @@ async function handle(list) {
 // ── PARSE ────────────────────────────────────────────────
 function parseFile(file) {
   return new Promise((res, rej) => {
-    // Read raw bytes first so we can detect BOM and encoding
     const rb = new FileReader();
     rb.onerror = () => rej(new Error('read error'));
     rb.onload = e => {
       const buf   = e.target.result;
       const bytes = new Uint8Array(buf);
 
-      // Detect UTF-16 LE BOM: 0xFF 0xFE
+      // Detect UTF-16 BOM
       const isUtf16LE = bytes[0] === 0xFF && bytes[1] === 0xFE;
-      // Detect UTF-16 BE BOM: 0xFE 0xFF
       const isUtf16BE = bytes[0] === 0xFE && bytes[1] === 0xFF;
 
       if (isUtf16LE || isUtf16BE) {
-        // Decode as UTF-16
-        const enc  = isUtf16LE ? 'utf-16le' : 'utf-16be';
-        const dec  = new TextDecoder(enc);
-        const text = dec.decode(buf);
-        try { res(parseText(text)); }
-        catch(err) { rej(err); }
-      } else {
-        // Try UTF-8 (covers ASCII too)
-        const dec  = new TextDecoder('utf-8');
-        const text = dec.decode(buf);
-        try { res(parseText(text)); }
-        catch(err) { rej(err); }
+        const text = new TextDecoder(isUtf16LE ? 'utf-16le' : 'utf-16be').decode(buf);
+        try { res(parseText(text)); } catch(err) { rej(err); }
+        return;
       }
+
+      // Try UTF-8 first; fall back to windows-1252 if replacement chars appear
+      let text = new TextDecoder('utf-8').decode(buf);
+      if (text.includes('\uFFFD')) {
+        text = new TextDecoder('windows-1252').decode(buf);
+      }
+      text = text.replace(/^\uFEFF/, ''); // strip BOM
+
+      try { res(parseText(text)); } catch(err) { rej(err); }
     };
     rb.readAsArrayBuffer(file);
   });
 }
 
 function parseText(raw) {
-  const txt   = raw.replace(/^\uFEFF/, '');
-  const lines = txt.split(/\r?\n/).filter(l => l.trim());
+  // FIX: handle \r\n, \r, and \n line endings
+  const lines = raw.split(/\r\n|\r|\n/).filter(l => l.trim());
   if (!lines.length) throw new Error('empty');
 
   const sep  = lines[0].includes('\t') ? '\t' : ',';
@@ -446,20 +452,17 @@ function splitLine(line, sep) {
   return [...out, cur];
 }
 
-// ── TRANSFORM (INPUT → OUTPUT columns) ──────────────────
+// ── TRANSFORM ───────────────────────────────────────────
 function normalizePhone(raw) {
-  // Strip Meta prefix "p:" only — keep +91 as LeadPixie expects it
-  let p = (raw || '').replace(/^p:/i, '').trim();
-  // Remove spaces/dashes
-  p = p.replace(/[\s\-]/g, '');
-  // Ensure + prefix for numbers that have 91 but no +
-  if (/^91\d{10}$/.test(p)) p = '+' + p;
-  // If already has +, keep as-is
+  let p = (raw || '').replace(/^p:/i, '').trim().replace(/[\s\-]/g, '');
+  // Bare 10-digit Indian number → add +91
+  if (/^\d{10}$/.test(p)) p = '+91' + p;
+  // 91 + 10 digits without + → add +
+  else if (/^91\d{10}$/.test(p)) p = '+' + p;
   return p;
 }
 
 function normalizeDate(raw) {
-  // LeadPixie expects: YYYY-MM-DD (date only, no time)
   try {
     const d = new Date(raw);
     if (isNaN(d)) return raw;
@@ -469,23 +472,30 @@ function normalizeDate(raw) {
 }
 
 function transform(r) {
-  const phone   = normalizePhone(r['phone_number']);
-  const dateStr = normalizeDate(r['created_time']);
+  const phone     = normalizePhone(r['phone_number']);
+  const dateStr   = normalizeDate(r['created_time']);
+  const courseKey = (r['select_a_course_you_are_interested_in'] || '').toLowerCase();
+  const course    = CNAME[courseKey] || r['select_a_course_you_are_interested_in'] || '';
+  const duration  = CDUR[courseKey]  || '';
 
   const row = {};
   OUT_COLS.forEach(k => row[k] = '');
-  row['Source']          = 'meta';
-  row['Name']            = (r['full_name'] || '').trim();
-  row['Phone']           = phone;
-  row['Email']           = '';
-  row['Stage']           = 'Lead';
-  row['Status']          = 'Not Set';
-  row['Sub Status']      = '';
-  row['Lead Created At'] = dateStr;
-  row['Owner']           = '';
-  row['First Contacted On']  = '';
-  row['Last Contacted On']   = '';
-  row['Next Followup On']    = '';
+
+  row['Phone']            = phone;
+  row['Name']             = (r['full_name'] || '').trim();
+  row['Email']            = '';
+  row['Lead Created At']  = dateStr;
+  row['Created At']       = dateStr;
+  row['Status']           = 'Not Set';
+  row['Sub Status']       = '';
+  row['Stage']            = 'Lead';
+  row['Owner']            = '';
+  row['Interested Course']= course;
+  row['Course Duration']  = duration;
+  row['Source']           = 'meta';
+  row['UTM Source']       = r['platform'] || '';
+  row['UTM Campaign']     = r['campaign_name'] || '';
+
   return row;
 }
 
@@ -493,7 +503,6 @@ function transform(r) {
 function render() {
   const all = FILES.flatMap(f => f.parsed);
 
-  // Pills
   document.getElementById('fileList').innerHTML = FILES.map((f,i) => `
     <div class="pill">
       <div class="pill-ico">
@@ -511,30 +520,28 @@ function render() {
       </button>
     </div>`).join('');
 
-  // Stats
+  const courses = new Set(all.map(r => r['Interested Course']).filter(Boolean));
   document.getElementById('sFiles').textContent   = FILES.length;
   document.getElementById('sLeads').textContent   = all.length;
-  document.getElementById('sCourses').textContent = new Set(all.map(r => r['Interested Course'])).size;
+  document.getElementById('sCourses').textContent = courses.size;
   document.getElementById('stats').classList.toggle('on', FILES.length > 0);
 
-  // Btn label
   const btn = document.getElementById('dlBtn');
   btn.disabled = !FILES.length;
   document.getElementById('dlLabel').textContent =
     MODE === 'separate' && FILES.length > 1 ? `Download ${FILES.length} Files` : 'Download CSV';
 
-  // Preview
   const prev = document.getElementById('preview');
   if (all.length) {
     prev.classList.add('on');
-    const show = all.slice(0,12);
+    const show = all.slice(0, 12);
     document.getElementById('prevCount').textContent = `Showing ${show.length} of ${all.length}`;
     document.getElementById('tbody').innerHTML = show.map((r,i) => `
       <tr>
         <td style="color:var(--ink3)">${i+1}</td>
-        <td><span class="bx bx-ig">${esc(r['Source'])}</span></td>
         <td style="font-weight:600">${esc(r['Name']) || '—'}</td>
         <td style="font-family:monospace;font-size:11.5px">${esc(r['Phone'])}</td>
+        <td style="font-size:11.5px;color:var(--ink2)">${esc(r['Interested Course']) || '—'}</td>
         <td><span class="bx bx-g">${esc(r['Stage'])}</span></td>
         <td style="color:var(--ink2)">${esc(r['Status'])}</td>
         <td style="color:var(--ink3);font-size:11px;font-family:monospace">${esc(r['Lead Created At'])}</td>
@@ -565,7 +572,7 @@ function doDownload() {
     try {
       if (MODE === 'separate') {
         FILES.forEach(f => {
-          const ext = /\.[^.]+$/.exec(f.name)?.[0] || '';
+          const ext  = /\.[^.]+$/.exec(f.name)?.[0] || '';
           const base = f.name.slice(0, f.name.length - ext.length);
           grab(toCSV(f.parsed), `LeadPX_${base}_clean.csv`);
         });
@@ -596,19 +603,15 @@ function grab(content, filename) {
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href     = url;
-  a.download = filename;
-  a.style.display = 'none';
+  a.href = url; a.download = filename; a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
   setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 3000);
 }
 
-// ── UTILS ─────────────────────────────────────────────────
 function esc(s) {
   return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-
 function toast(msg, type='ok') {
   const el = document.createElement('div');
   el.className = `toast t-${type}`;
