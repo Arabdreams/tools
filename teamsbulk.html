@@ -114,7 +114,7 @@
 
         .options {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 20px;
             padding: 24px;
             background: #f5f5f7;
@@ -146,31 +146,12 @@
             font-size: 15px;
         }
 
-        .delay-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .delay-control input[type="number"] {
-            width: 70px;
-            padding: 8px 12px;
-            border: 1px solid #d2d2d7;
-            border-radius: 8px;
-            font-size: 15px;
-            background: #ffffff;
-        }
-
-        .delay-control input[type="number"]:focus {
-            outline: none;
-            border-color: #0071e3;
-        }
-
         .button-group {
             display: flex;
             gap: 16px;
             justify-content: center;
             margin-bottom: 30px;
+            flex-wrap: wrap;
         }
 
         button {
@@ -194,6 +175,20 @@
         }
 
         .btn-primary:disabled {
+            background: #d2d2d7;
+            cursor: not-allowed;
+        }
+
+        .btn-next {
+            background: #34c759;
+            color: #ffffff;
+        }
+
+        .btn-next:hover {
+            background: #30b350;
+        }
+
+        .btn-next:disabled {
             background: #d2d2d7;
             cursor: not-allowed;
         }
@@ -230,6 +225,10 @@
             margin-bottom: 40px;
             font-size: 15px;
             color: #6e6e73;
+        }
+
+        .info-box strong {
+            color: #1d1d1f;
         }
 
         .status {
@@ -348,6 +347,11 @@
             align-items: center;
         }
 
+        .progress-item.current {
+            background: #eef6ff;
+            border-radius: 8px;
+        }
+
         .progress-item:last-child {
             border-bottom: none;
         }
@@ -402,10 +406,6 @@
                 font-size: 19px;
             }
 
-            .options {
-                grid-template-columns: 1fr;
-            }
-
             .button-group {
                 flex-direction: column;
             }
@@ -428,7 +428,7 @@
         <p class="subtitle">Send messages to multiple recipients</p>
 
         <div class="info-box">
-            Enter email addresses and compose your message. The tool will open Microsoft Teams for each recipient with your message pre-filled. Text formatting and line breaks are preserved.
+            Enter email addresses and compose your message, then click <strong>Start</strong>. Click <strong>Send Next</strong> once per recipient (or press Space/Enter while it's focused) to open Microsoft Teams with your message pre-filled — <strong>every click reliably opens the chat</strong>, none get silently skipped.
         </div>
 
         <div class="section">
@@ -463,27 +463,17 @@ Line breaks and formatting will be preserved."></textarea>
         <div class="options">
             <div class="option-group">
                 <div class="option">
-                    <input type="checkbox" id="autoRedirect" checked>
-                    <label for="autoRedirect">Auto-redirect to next recipient</label>
-                </div>
-                <div class="option">
                     <input type="checkbox" id="preserveFormatting" checked>
                     <label for="preserveFormatting">Preserve text formatting</label>
-                </div>
-            </div>
-            <div class="option-group">
-                <label style="font-size: 15px; font-weight: 500; margin-bottom: 8px;">Redirect delay</label>
-                <div class="delay-control">
-                    <input type="number" id="delayTime" value="3" min="1" max="60">
-                    <span>seconds</span>
                 </div>
             </div>
         </div>
 
         <div class="button-group">
             <button class="btn-secondary" onclick="clearAll()">Clear All</button>
-            <button class="btn-stop" id="stopBtn" onclick="stopSending()" disabled>Stop</button>
-            <button class="btn-primary" id="sendBtn" onclick="startSending()">Send Messages</button>
+            <button class="btn-primary" id="sendBtn" onclick="startSending()">Start</button>
+            <button class="btn-next" id="nextBtn" onclick="sendNext()" disabled>Send Next</button>
+            <button class="btn-stop" id="stopBtn" onclick="stopSending()" disabled>Reset</button>
         </div>
 
         <!-- Progress Dropdown -->
@@ -492,10 +482,10 @@ Line breaks and formatting will be preserved."></textarea>
                 <h3>Progress</h3>
                 <div class="progress-indicator">
                     <span class="progress-count" id="progressCount">0/0</span>
-                    <span>▼</span>
+                    <span class="arrow">▼</span>
                 </div>
             </div>
-            <div id="progressContent" class="progress-content">
+            <div id="progressContent" class="progress-content active">
                 <ul class="progress-list" id="progressList"></ul>
                 <div class="progress-summary">
                     <span id="summaryText">Ready to start</span>
@@ -510,9 +500,8 @@ Line breaks and formatting will be preserved."></textarea>
     <script>
         let currentIndex = 0;
         let emails = [];
+        let currentMessage = '';
         let isSending = false;
-        let shouldStop = false;
-        let timeoutId = null;
         let progressData = [];
 
         // Update email count
@@ -557,7 +546,7 @@ Line breaks and formatting will be preserved."></textarea>
                 'a': 'a̶', 'b': 'b̶', 'c': 'c̶', 'd': 'd̶', 'e': 'e̶', 'f': 'f̶', 'g': 'g̶', 'h': 'h̶', 'i': 'i̶', 'j': 'j̶',
                 'k': 'k̶', 'l': 'l̶', 'm': 'm̶', 'n': 'n̶', 'o': 'o̶', 'p': 'p̶', 'q': 'q̶', 'r': 'r̶', 's': 's̶', 't': 't̶',
                 'u': 'u̶', 'v': 'v̶', 'w': 'w̶', 'x': 'x̶', 'y': 'y̶', 'z': 'z̶',
-                '0': '0̶', '1': '1̶', '2': '2̶', '3': '3̶', '4': '4̶', '5': '5̶', '6': '6̶', '7': '7̶', '8': '8̶', '9': '9̶'
+                '0': '0̶', '1': '1̶', '2': '2̶', '3': '3̶', '4': '4̶', '5': '5̶', '6': '6̶', '7': '7̶', '8': '8̶', '9': '8̶'
             }
         };
 
@@ -567,11 +556,8 @@ Line breaks and formatting will be preserved."></textarea>
             if (!map) return text;
             
             return text.split('').map(char => {
-                // Check if character is already formatted
                 if (char.length > 1 && (char.includes('\u0332') || char.includes('\u0336'))) {
-                    // Remove existing formatting marks
                     const baseChar = char.replace(/[\u0332\u0336]/g, '');
-                    // Apply new formatting to base character
                     return (map[baseChar] || baseChar) + (char.includes('\u0332') ? '\u0332' : '') + (char.includes('\u0336') ? '\u0336' : '');
                 }
                 return map[char] || char;
@@ -581,16 +567,12 @@ Line breaks and formatting will be preserved."></textarea>
         // Helper function to remove all Unicode formatting
         function removeUnicodeFormatting(text) {
             let result = text;
-            
-            // Remove combining characters first
             result = result.replace(/[\u0332\u0336]/g, '');
             
-            // Reverse bold mapping
             Object.entries(unicodeMaps.bold).forEach(([normal, unicode]) => {
                 result = result.replace(new RegExp(unicode, 'g'), normal);
             });
             
-            // Reverse italic mapping
             Object.entries(unicodeMaps.italic).forEach(([normal, unicode]) => {
                 result = result.replace(new RegExp(unicode, 'g'), normal);
             });
@@ -626,15 +608,12 @@ Line breaks and formatting will be preserved."></textarea>
                     break;
             }
 
-            // Replace the selected text with formatted text
             textarea.value = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
             
-            // Set cursor position after formatted text
             const newPos = start + formattedText.length;
             textarea.setSelectionRange(newPos, newPos);
             textarea.focus();
             
-            // Trigger input event to update any listeners
             textarea.dispatchEvent(new Event('input'));
         }
 
@@ -644,15 +623,12 @@ Line breaks and formatting will be preserved."></textarea>
             const end = textarea.selectionEnd;
             
             if (start === end) {
-                // If no selection, clear formatting for entire text
                 textarea.value = removeUnicodeFormatting(textarea.value);
             } else {
-                // If there's a selection, clear formatting only for selected text
                 const selectedText = textarea.value.substring(start, end);
                 const unformattedText = removeUnicodeFormatting(selectedText);
                 textarea.value = textarea.value.substring(0, start) + unformattedText + textarea.value.substring(end);
                 
-                // Set cursor position after unformatted text
                 const newPos = start + unformattedText.length;
                 textarea.setSelectionRange(newPos, newPos);
             }
@@ -663,7 +639,7 @@ Line breaks and formatting will be preserved."></textarea>
 
         function toggleProgress() {
             const content = document.getElementById('progressContent');
-            const arrow = document.querySelector('.progress-indicator span:last-child');
+            const arrow = document.querySelector('.progress-indicator .arrow');
             content.classList.toggle('active');
             arrow.classList.toggle('up');
         }
@@ -671,7 +647,7 @@ Line breaks and formatting will be preserved."></textarea>
         function showProgress() {
             document.getElementById('progressContainer').classList.add('active');
             document.getElementById('progressContent').classList.add('active');
-            document.querySelector('.progress-indicator span:last-child').classList.add('up');
+            document.querySelector('.progress-indicator .arrow').classList.add('up');
         }
 
         function updateProgress() {
@@ -680,34 +656,29 @@ Line breaks and formatting will be preserved."></textarea>
             const pending = progressData.filter(item => item.status === 'pending').length;
             const failed = progressData.filter(item => item.status === 'error').length;
             
-            // Update count
             document.getElementById('progressCount').textContent = `${completed}/${total}`;
             
-            // Update percentage
             const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
             document.getElementById('progressPercentage').textContent = `${percentage}%`;
             
-            // Update summary
             let summary = `Sent: ${completed}`;
             if (pending > 0) summary += ` | Pending: ${pending}`;
             if (failed > 0) summary += ` | Failed: ${failed}`;
             document.getElementById('summaryText').textContent = summary;
             
-            // Update progress list
             const progressList = document.getElementById('progressList');
             progressList.innerHTML = '';
             
             progressData.forEach((item, index) => {
                 const li = document.createElement('li');
-                li.className = 'progress-item';
+                li.className = 'progress-item' + (index === currentIndex && isSending ? ' current' : '');
                 li.innerHTML = `
                     <div class="progress-email">${item.email}</div>
                     <div class="progress-status status-${item.status}">${item.statusText}</div>
                 `;
                 progressList.appendChild(li);
                 
-                // Scroll to show current item if it's pending
-                if (item.status === 'pending') {
+                if (index === currentIndex && isSending) {
                     li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
             });
@@ -721,24 +692,18 @@ Line breaks and formatting will be preserved."></textarea>
             hideStatus();
             document.getElementById('progressContainer').classList.remove('active');
             currentIndex = 0;
+            emails = [];
             isSending = false;
-            shouldStop = false;
             progressData = [];
         }
 
         function stopSending() {
-            shouldStop = true;
             isSending = false;
             
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-                timeoutId = null;
-            }
-            
             document.getElementById('sendBtn').disabled = false;
+            document.getElementById('nextBtn').disabled = true;
             document.getElementById('stopBtn').disabled = true;
             
-            // Mark pending items as skipped
             progressData.forEach(item => {
                 if (item.status === 'pending') {
                     item.status = 'skipped';
@@ -749,10 +714,13 @@ Line breaks and formatting will be preserved."></textarea>
             updateProgress();
             
             if (currentIndex > 0) {
-                showStatus(`Stopped. Sent to ${currentIndex} of ${emails.length} recipients`, 'error');
+                showStatus(`Reset. Sent to ${currentIndex} of ${emails.length} recipients before stopping`, 'error');
             } else {
-                showStatus('Sending stopped', 'error');
+                showStatus('Reset', 'error');
             }
+
+            currentIndex = 0;
+            emails = [];
         }
 
         function showStatus(message, type) {
@@ -784,141 +752,93 @@ Line breaks and formatting will be preserved."></textarea>
         }
 
         function openTeamsChat(email, message) {
-            // Use the original Teams URL format that was working perfectly
             const encodedMessage = encodeURIComponent(message);
             const teamsUrl = `https://teams.microsoft.com/l/chat/0/0?users=${email}&message=${encodedMessage}`;
-            
-            // Open in a new window (this triggers Teams to open in the app)
             window.open(teamsUrl, '_blank');
         }
 
+        // --- Core fix (same as the WhatsApp tool) ---
+        // window.open() calls made from inside a setTimeout chain lose the
+        // "real user click" that Chrome's popup blocker requires — only the
+        // very first call in the old auto-loop actually carried a trusted
+        // click, so every recipient after #1 got silently blocked. There's
+        // no way to script around that; it's intentional browser security.
+        //
+        // Fix: every send is now its own real button click. Start sets
+        // everything up; "Send Next" opens exactly one Teams chat per
+        // click — guaranteed, every time, no silent skips.
         function startSending() {
             if (isSending) return;
 
             if (!validateInputs()) return;
 
             const emailText = document.getElementById('emailList').value.trim();
-            emails = emailText.split('\n').filter(e => e.trim());
+            emails = emailText.split('\n').filter(e => e.trim()).map(e => e.trim());
             let message = document.getElementById('messageText').value;
             
-            // Apply formatting if preserveFormatting is checked
             const preserveFormatting = document.getElementById('preserveFormatting').checked;
             if (!preserveFormatting) {
                 message = removeUnicodeFormatting(message);
             }
-
-            const autoRedirect = document.getElementById('autoRedirect').checked;
-            const delay = parseInt(document.getElementById('delayTime').value) * 1000;
+            currentMessage = message;
 
             currentIndex = 0;
             isSending = true;
-            shouldStop = false;
 
-            // Initialize progress data
             progressData = emails.map(email => ({
-                email: email.trim(),
+                email: email,
                 status: 'pending',
                 statusText: 'Pending'
             }));
 
-            // Show and update progress
             showProgress();
             updateProgress();
             
-            showStatus(`Starting to send to ${emails.length} recipient(s)...`, 'processing');
+            showStatus(`Ready. Click "Send Next" to open recipient 1 of ${emails.length}.`, 'processing');
             document.getElementById('sendBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = false;
             document.getElementById('stopBtn').disabled = false;
-
-            if (autoRedirect) {
-                sendNext(emails, message, delay);
-            } else {
-                sendAll(emails, message);
-            }
+            document.getElementById('nextBtn').focus();
         }
 
-        function sendNext(emails, message, delay) {
-            if (shouldStop || currentIndex >= emails.length) {
-                if (!shouldStop && currentIndex >= emails.length) {
-                    showStatus(`All messages sent successfully. Total: ${emails.length}`, 'success');
-                }
-                document.getElementById('sendBtn').disabled = false;
-                document.getElementById('stopBtn').disabled = true;
-                isSending = false;
-                return;
-            }
+        // Fires on a real click (or Space/Enter while focused) — the
+        // trusted gesture the browser requires for every window.open call.
+        function sendNext() {
+            if (!isSending || currentIndex >= emails.length) return;
 
-            const email = emails[currentIndex].trim();
-            
-            // Update progress for current email
-            progressData[currentIndex].status = 'pending';
-            progressData[currentIndex].statusText = 'Opening Teams...';
-            updateProgress();
-            
-            showStatus(`Opening chat ${currentIndex + 1} of ${emails.length}: ${email}`, 'processing');
-            
+            const email = emails[currentIndex];
+
             try {
-                openTeamsChat(email, message);
-                // Mark as success after opening
-                setTimeout(() => {
-                    progressData[currentIndex].status = 'success';
-                    progressData[currentIndex].statusText = 'Sent';
-                    updateProgress();
-                }, 1000);
+                openTeamsChat(email, currentMessage);
+                progressData[currentIndex].status = 'success';
+                progressData[currentIndex].statusText = 'Sent';
             } catch (error) {
                 progressData[currentIndex].status = 'error';
                 progressData[currentIndex].statusText = 'Failed';
-                updateProgress();
             }
-            
+
             currentIndex++;
+            updateProgress();
 
-            timeoutId = setTimeout(() => sendNext(emails, message, delay), delay);
-        }
-
-        function sendAll(emails, message) {
-            let openedCount = 0;
-            const total = emails.length;
-            
-            emails.forEach((email, index) => {
-                setTimeout(() => {
-                    if (!shouldStop) {
-                        const emailTrimmed = email.trim();
-                        
-                        // Update progress for current email
-                        progressData[index].status = 'pending';
-                        progressData[index].statusText = 'Opening...';
-                        updateProgress();
-                        
-                        try {
-                            openTeamsChat(emailTrimmed, message);
-                            // Mark as success after opening
-                            setTimeout(() => {
-                                progressData[index].status = 'success';
-                                progressData[index].statusText = 'Sent';
-                                openedCount++;
-                                updateProgress();
-                                
-                                if (openedCount === total) {
-                                    showStatus(`Opened ${total} Teams chats`, 'success');
-                                    document.getElementById('sendBtn').disabled = false;
-                                    document.getElementById('stopBtn').disabled = true;
-                                    isSending = false;
-                                }
-                            }, 1000);
-                        } catch (error) {
-                            progressData[index].status = 'error';
-                            progressData[index].statusText = 'Failed';
-                            openedCount++;
-                            updateProgress();
-                        }
-                    }
-                }, index * 2000); // 2-second delay between openings
-            });
+            if (currentIndex >= emails.length) {
+                document.getElementById('nextBtn').disabled = true;
+                document.getElementById('sendBtn').disabled = false;
+                showStatus(`All ${emails.length} recipients opened — done!`, 'success');
+            } else {
+                showStatus(`Opened ${currentIndex} of ${emails.length}. Click "Send Next" for recipient ${currentIndex + 1}.`, 'processing');
+            }
         }
 
         // Initialize
         document.getElementById('emailCount').textContent = '0';
         
+        document.getElementById('nextBtn').addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                sendNext();
+            }
+        });
+
         // Add keyboard shortcut for formatting (Ctrl+B, Ctrl+I, etc.)
         document.addEventListener('keydown', function(e) {
             const textarea = document.getElementById('messageText');
