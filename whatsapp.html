@@ -284,10 +284,11 @@
             <div class="section-title">Bulk Messaging</div>
             
             <div class="instruction">
-                <strong>Important:</strong> Before starting, make sure to:<br>
-                1. <strong>Allow popups</strong> in your browser for this site<br>
-                2. <strong>Keep WhatsApp Web</strong> open in another tab<br>
-                3. <strong>Don't close</strong> the popup windows automatically
+                <strong>Important (Windows):</strong><br>
+                1. <strong>WhatsApp Desktop app must be installed</strong> — this launches the app directly, not WhatsApp Web<br>
+                2. The <strong>first time</strong> Chrome will show a popup asking "Open WhatsApp?" — check <strong>"Always allow"</strong> so it stops asking<br>
+                3. Chrome only allows a webpage to launch an external app <strong>once per real click</strong> — it silently blocks any automatic/timed attempts after that as an anti-abuse measure. So instead of auto-looping, click <strong>"Send Next"</strong> for each contact — every click is a real click, so the app opens <strong>every time, no skips</strong><br>
+                4. Each click pops the app to that contact's chat with your message pre-filled — you still tap <strong>Send</strong> inside WhatsApp
             </div>
             
             <div class="field-group">
@@ -305,16 +306,18 @@ Example:
             </div>
             
             <div class="button-group">
-                <button id="startBtn" onclick="startSending()">Start Sending</button>
-                <button id="stopBtn" class="stop-btn" onclick="stopSending()" disabled>Stop</button>
+                <button id="startBtn" onclick="startSending()">Start</button>
+                <button id="nextBtn" onclick="sendNext()" disabled>Send Next</button>
+                <button id="stopBtn" class="stop-btn" onclick="stopSending()" disabled>Reset</button>
             </div>
             
             <div class="progress" id="progress">
-                <div class="progress-text" id="progressText">Processing: 0 / 0</div>
+                <div class="progress-text" id="progressText">Ready: 0 / 0</div>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
                 <div class="current-number" id="currentNumber"></div>
+                <div class="current-number" style="margin-top:4px;">Tip: with focus on "Send Next", you can also just press <strong>Space</strong> or <strong>Enter</strong> to fire the next one quickly.</div>
             </div>
         </div>
 
@@ -429,79 +432,97 @@ Example:
             }, 2000);
         }
 
-        async function startSending() {
-            if (isSending) return;
-            
+        // --- Core fix ---
+        // Chrome (and Windows' protocol-handler security model in general)
+        // only allows a page to launch an external app ONCE per genuine,
+        // trusted click. window.open() loops get popup-blocked after the
+        // first call, and even whatsapp:// protocol launches get silently
+        // swallowed once you're inside a setTimeout/await chain, because
+        // that code no longer carries real "user activation."
+        //
+        // There is no JS trick that reliably gets around this — it's
+        // intentional anti-abuse behavior baked into the browser. The only
+        // 100%-reliable fix is to make every single launch its own real
+        // click. So "Send Next" fires one contact per click — every click
+        // is trusted, so the app opens every time, with zero skips.
+        function openWhatsAppApp(number, message) {
+            const encodedMessage = encodeURIComponent(message);
+            const appUrl = `whatsapp://send?phone=${number}&text=${encodedMessage}`;
+
+            const link = document.createElement('a');
+            link.href = appUrl;
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function startSending() {
             const numbersText = document.getElementById('numbers').value;
             const message = document.getElementById('message').value;
-            
+
             if (!numbersText.trim()) {
                 alert('Please enter numbers');
                 return;
             }
-            
+
             if (!message.trim()) {
                 alert('Please enter a message');
                 return;
             }
-            
+
             numbersArray = numbersText.split('\n')
                 .filter(line => line.trim())
                 .map(num => num.trim());
-            
+
             totalNumbers = numbersArray.length;
             currentIndex = 0;
             isSending = true;
-            stopSendingFlag = false;
-            
+
             document.getElementById('startBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = false;
             document.getElementById('stopBtn').disabled = false;
             document.getElementById('progress').classList.add('active');
             document.getElementById('status').textContent = '';
-            
-            for (let i = 0; i < numbersArray.length; i++) {
-                if (stopSendingFlag) {
-                    document.getElementById('status').textContent = 'Stopped by user';
-                    break;
-                }
-                
-                currentIndex = i + 1;
-                const currentNumber = numbersArray[i];
-                
-                updateProgress(currentIndex, totalNumbers, currentNumber);
-                
-                const encodedMessage = encodeURIComponent(message);
-                const whatsappUrl = `https://wa.me/${currentNumber}?text=${encodedMessage}`;
-                
-                window.open(whatsappUrl, '_blank');
-                
-                if (i < numbersArray.length - 1 && !stopSendingFlag) {
-                    await sleep(5000);
-                }
-            }
-            
-            isSending = false;
-            document.getElementById('startBtn').disabled = false;
-            document.getElementById('stopBtn').disabled = true;
-            
-            if (!stopSendingFlag) {
-                document.getElementById('status').textContent = 'All messages sent successfully';
-                
+            updateProgress(0, totalNumbers, '— click "Send Next" to begin —');
+
+            document.getElementById('nextBtn').focus();
+        }
+
+        // Fires on a real click (or Space/Enter while focused) — this is
+        // the trusted user gesture the browser requires for every launch.
+        function sendNext() {
+            if (!isSending || currentIndex >= totalNumbers) return;
+
+            const currentNumber = numbersArray[currentIndex];
+            currentIndex += 1;
+
+            updateProgress(currentIndex, totalNumbers, currentNumber);
+            openWhatsAppApp(currentNumber, message());
+
+            if (currentIndex >= totalNumbers) {
+                document.getElementById('nextBtn').disabled = true;
+                document.getElementById('status').textContent = 'All contacts sent — done!';
                 setTimeout(() => {
                     document.getElementById('progress').classList.remove('active');
-                    document.getElementById('status').textContent = '';
                 }, 3000);
             }
         }
 
+        function message() {
+            return document.getElementById('message').value;
+        }
+
         function stopSending() {
-            if (isSending) {
-                stopSendingFlag = true;
-                isSending = false;
-                document.getElementById('startBtn').disabled = false;
-                document.getElementById('stopBtn').disabled = true;
-                document.getElementById('status').textContent = 'Stopping...';
-            }
+            isSending = false;
+            numbersArray = [];
+            currentIndex = 0;
+            totalNumbers = 0;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('progress').classList.remove('active');
+            document.getElementById('status').textContent = 'Reset';
         }
 
         function updateProgress(current, total, number) {
@@ -514,6 +535,13 @@ Example:
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
+
+        document.getElementById('nextBtn').addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                sendNext();
+            }
+        });
     </script>
 </body>
 </html>
