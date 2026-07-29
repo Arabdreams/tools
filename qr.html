@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card & Code — vCard QR Studio</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --ink:#151313;
+    --parchment:#F1EADD;
+    --brass:#B8863B;
+    --brass-deep:#8C6526;
+    --plate:#1F2624;
+    --plate-soft:#2B3532;
+    --line: rgba(21,19,19,0.12);
+    --ok: #4A7A5D;
+    --err: #B4523B;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    background: var(--parchment);
+    color: var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+  }
+
+  .grain{
+    position:fixed; inset:0; pointer-events:none; opacity:0.05; z-index:0;
+    background-image: radial-gradient(circle, #000 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+
+  header{
+    position:relative; z-index:1;
+    padding: 36px 48px 20px;
+    display:flex; align-items:baseline; justify-content:space-between;
+    border-bottom: 1px solid var(--line);
+  }
+
+  header .brand{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size: 28px;
+    letter-spacing:-0.01em;
+  }
+  header .brand em{
+    font-style:normal; color:var(--brass-deep);
+  }
+  header .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing: 0.08em;
+    text-transform:uppercase;
+    color: rgba(21,19,19,0.55);
+  }
+
+  main{
+    position:relative; z-index:1;
+    display:grid;
+    grid-template-columns: minmax(320px, 460px) 1fr;
+    gap: 0;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 860px){
+    main{ grid-template-columns: 1fr; }
+  }
+
+  .panel{
+    padding: 44px 48px;
+  }
+
+  .form-panel{
+    border-right: 1px solid var(--line);
+  }
+  @media (max-width: 860px){
+    .form-panel{ border-right:none; border-bottom:1px solid var(--line); }
+  }
+
+  .field{
+    margin-bottom: 20px;
+  }
+  .field label{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(21,19,19,0.6);
+    margin-bottom: 7px;
+  }
+  .field input[type="text"],
+  .field input[type="tel"],
+  .field input[type="email"],
+  .field input[type="url"]{
+    width:100%;
+    padding: 11px 13px;
+    border: 1px solid rgba(21,19,19,0.22);
+    background: #fff;
+    border-radius: 3px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size: 14.5px;
+    color: var(--ink);
+    transition: border-color .15s ease;
+  }
+  .field input:focus{
+    outline: none;
+    border-color: var(--brass-deep);
+  }
+
+  .row2{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 480px){ .row2{ grid-template-columns: 1fr; } }
+
+  .logo-drop{
+    border: 1px dashed rgba(21,19,19,0.3);
+    border-radius: 4px;
+    padding: 18px;
+    display:flex;
+    align-items:center;
+    gap: 14px;
+    cursor:pointer;
+    background:#fff;
+  }
+  .logo-drop:hover{ border-color: var(--brass-deep); }
+  .logo-drop .swatch{
+    width:44px; height:44px;
+    border-radius:50%;
+    background: var(--plate);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    overflow:hidden;
+  }
+  .logo-drop .swatch img{ width:100%; height:100%; object-fit:cover; }
+  .logo-drop .swatch svg{ width:18px; height:18px; stroke: var(--parchment); }
+  .logo-drop .txt{ font-size:13px; color: rgba(21,19,19,0.7); }
+  .logo-drop .txt strong{ display:block; color:var(--ink); font-size:14px; margin-bottom:2px; }
+  .logo-drop input[type=file]{ display:none; }
+  .logo-clear{
+    background:none; border:none; color: var(--err); font-size:12px;
+    font-family:'IBM Plex Mono', monospace; cursor:pointer; margin-top:8px; padding:0;
+    text-decoration: underline;
+  }
+
+  .slider-row{
+    display:flex; align-items:center; gap:12px;
+  }
+  .slider-row input[type=range]{ flex:1; accent-color: var(--brass-deep); }
+  .slider-row span{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; min-width:34px; text-align:right;
+  }
+
+  .divider{
+    height:1px; background: var(--line); margin: 28px 0;
+  }
+
+  .switch-row{
+    display:flex;
+    align-items:flex-start;
+    gap: 14px;
+    cursor:pointer;
+  }
+  .switch{ position:relative; flex-shrink:0; margin-top:2px; }
+  .switch input{ position:absolute; opacity:0; width:0; height:0; }
+  .switch-track{
+    display:block;
+    width: 40px; height: 22px;
+    background: rgba(21,19,19,0.2);
+    border-radius: 999px;
+    position:relative;
+    transition: background .15s ease;
+  }
+  .switch-thumb{
+    position:absolute;
+    top: 3px; left: 3px;
+    width: 16px; height: 16px;
+    border-radius:50%;
+    background: #fff;
+    transition: left .15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  .switch input:checked + .switch-track{
+    background: var(--brass-deep);
+  }
+  .switch input:checked + .switch-track .switch-thumb{
+    left: 21px;
+  }
+  .switch-text strong{
+    display:block;
+    font-size: 14.5px;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+  .switch-text{
+    font-size: 12.5px;
+    color: rgba(21,19,19,0.55);
+    line-height:1.4;
+  }
+
+  .logo-controls-hidden{
+    display:none;
+  }
+  .logo-controls-visible{
+    display:block;
+    animation: fadeIn .18s ease;
+  }
+  @keyframes fadeIn{
+    from{ opacity:0; transform: translateY(-4px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+
+  .logo-note{
+    font-size: 11.5px;
+    line-height:1.6;
+    color: rgba(21,19,19,0.5);
+    margin: -6px 0 0;
+  }
+
+  .preview-panel{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    padding-top: 56px;
+  }
+
+  .card-mock{
+    width: 340px;
+    background: var(--plate);
+    border-radius: 10px;
+    padding: 28px 26px 24px;
+    box-shadow: 0 24px 48px -20px rgba(21,19,19,0.45), 0 2px 0 rgba(255,255,255,0.04) inset;
+    position:relative;
+    color: var(--parchment);
+  }
+  .card-mock::before{
+    content:'';
+    position:absolute; inset: 8px;
+    border: 1px solid rgba(184,134,59,0.35);
+    border-radius: 5px;
+    pointer-events:none;
+  }
+  .card-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size: 21px;
+    margin: 0 0 2px;
+  }
+  .card-org{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform:uppercase;
+    color: var(--brass);
+    margin: 0 0 20px;
+  }
+  .qr-wrap{
+    background:#fff;
+    border-radius: 6px;
+    padding: 16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  #qr-target{ line-height:0; position:absolute; left:-9999px; top:-9999px; }
+  #qr-target img, #qr-target canvas{ display:block; }
+  .final-canvas{ display:block; border-radius: 2px; }
+
+  .card-meta{
+    margin-top: 18px;
+    font-size: 12px;
+    line-height:1.7;
+    color: rgba(241,234,221,0.75);
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .card-meta div span{ color: var(--parchment); }
+
+  .actions{
+    margin-top: 30px;
+    display:flex;
+    gap: 12px;
+  }
+  .btn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+    padding: 12px 20px;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    cursor:pointer;
+    text-transform: uppercase;
+  }
+  .btn-primary{
+    background: var(--brass-deep);
+    color: #fff;
+  }
+  .btn-primary:hover{ background: #7a5620; }
+  .btn-ghost{
+    background:transparent;
+    border-color: rgba(21,19,19,0.3);
+    color: var(--ink);
+  }
+  .btn-ghost:hover{ border-color: var(--ink); }
+
+  .hint{
+    margin-top: 16px;
+    font-size: 12px;
+    color: rgba(21,19,19,0.5);
+    max-width: 340px;
+    text-align:center;
+    line-height:1.5;
+  }
+
+  footer{
+    position:relative; z-index:1;
+    text-align:center;
+    padding: 30px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: rgba(21,19,19,0.45);
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <div class="brand">Card <em>&amp;</em> Code</div>
+  <div class="tag">vCard QR Studio — runs entirely in your browser</div>
+</header>
+
+<main>
+  <section class="panel form-panel">
+
+    <div class="field">
+      <label for="fname">Full name</label>
+      <input type="text" id="fname" placeholder="Shamseer EK" value="Shamseer EK">
+    </div>
+
+    <div class="field">
+      <label for="forg">Organization</label>
+      <input type="text" id="forg" placeholder="Arab Dreams" value="Arab Dreams">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="fphone">Phone (mobile)</label>
+        <input type="tel" id="fphone" placeholder="+966550667975" value="+966550667975">
+      </div>
+      <div class="field">
+        <label for="femail">Email</label>
+        <input type="email" id="femail" placeholder="name@company.com" value="shamseer@arabdreams.com">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="furl">Website</label>
+      <input type="url" id="furl" placeholder="www.arabdreams.com" value="www.arabdreams.com">
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="field toggle-field">
+      <label class="switch-row" for="logo-toggle">
+        <span class="switch">
+          <input type="checkbox" id="logo-toggle">
+          <span class="switch-track"><span class="switch-thumb"></span></span>
+        </span>
+        <span class="switch-text">
+          <strong>Embed logo in QR</strong>
+          Off by default — plain codes scan fastest, especially printed small
+        </span>
+      </label>
+    </div>
+
+    <div id="logo-controls" class="logo-controls-hidden">
+      <div class="field">
+        <label>Logo image</label>
+        <label class="logo-drop" for="flogo">
+          <span class="swatch" id="logo-swatch">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+          </span>
+          <span class="txt">
+            <strong>Upload logo</strong>
+            PNG or SVG with transparent background works best
+          </span>
+        </label>
+        <input type="file" id="flogo" accept="image/*">
+        <button class="logo-clear" id="logo-clear-btn" style="display:none;">Remove logo</button>
+      </div>
+
+      <div class="field">
+        <label for="fsize">Logo size</label>
+        <div class="slider-row">
+          <input type="range" id="fsize" min="12" max="26" value="18">
+          <span id="fsize-val">18%</span>
+        </div>
+      </div>
+      <p class="logo-note">Kept small and backed by a solid plate so the QR still scans reliably. A logo always adds some risk at very small print sizes — test a scan before mass printing.</p>
+    </div>
+
+  </section>
+
+  <section class="panel preview-panel">
+    <div class="card-mock">
+      <p class="card-name" id="preview-name">Shamseer EK</p>
+      <p class="card-org" id="preview-org">Arab Dreams</p>
+      <div class="qr-wrap">
+        <div id="qr-target"></div>
+        <canvas class="final-canvas" id="final-canvas" width="260" height="260"></canvas>
+      </div>
+      <div class="card-meta">
+        <div id="meta-phone"></div>
+        <div id="meta-email"></div>
+        <div id="meta-url"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="download-btn">Download PNG</button>
+      <button class="btn btn-ghost" id="download-svg-btn">Download vCard (.vcf)</button>
+    </div>
+
+    <p class="hint">This QR encodes the full contact card directly — no server, no redirect, no expiry. It will keep working for as long as this image file exists.</p>
+  </section>
+</main>
+
+<footer>Static &amp; self-contained — no data leaves your browser</footer>
+
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+
+  const fields = ['fname','forg','fphone','femail','furl'];
+  const qrTarget = $('qr-target');
+  const finalCanvas = $('final-canvas');
+  const ctx = finalCanvas.getContext('2d');
+
+  let logoImage = null;
+  let qrInstance = null;
+  const QR_PX = 240;      // native render size from the QR library
+  const QUIET = 24;       // white quiet-zone margin, critical for scanning at small print sizes
+  const FINAL_PX = QR_PX + QUIET * 2;
+
+  function escapeVCard(str){
+    return (str || '').replace(/([,;\\])/g, '\\$1');
+  }
+
+  function buildVCard(){
+    const name = $('fname').value.trim();
+    const org = $('forg').value.trim();
+    const phone = $('fphone').value.trim();
+    const email = $('femail').value.trim();
+    const url = $('furl').value.trim();
+
+    const parts = name.split(' ');
+    const first = parts.shift() || '';
+    const last = parts.join(' ');
+
+    let v = 'BEGIN:VCARD\nVERSION:3.0\n';
+    v += `N:${escapeVCard(last)};${escapeVCard(first)};;;\n`;
+    v += `FN:${escapeVCard(name)}\n`;
+    if(org) v += `ORG:${escapeVCard(org)}\n`;
+    if(phone) v += `TEL;TYPE=CELL:${escapeVCard(phone)}\n`;
+    if(email) v += `EMAIL:${escapeVCard(email)}\n`;
+    if(url) v += `URL:${escapeVCard(url)}\n`;
+    v += 'END:VCARD';
+    return v;
+  }
+
+  function drawFinal(){
+    // wait a tick for qrcodejs to render into qrTarget
+    setTimeout(() => {
+      const src = qrTarget.querySelector('canvas') || qrTarget.querySelector('img');
+      if(!src) return;
+
+      finalCanvas.width = FINAL_PX;
+      finalCanvas.height = FINAL_PX;
+
+      // crisp square edges — no smoothing/blur when scaling the source up
+      ctx.imageSmoothingEnabled = false;
+
+      // white quiet zone all around: this is what actually makes a QR reliably
+      // scannable at small sizes — scanners need clear empty space to lock on
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, FINAL_PX, FINAL_PX);
+      ctx.drawImage(src, QUIET, QUIET, QR_PX, QR_PX);
+
+      const logoOn = $('logo-toggle').checked;
+      if(logoOn && logoImage){
+        const pct = parseInt($('fsize').value, 10) / 100;
+        const logoSize = QR_PX * pct;
+        const cx = FINAL_PX/2, cy = FINAL_PX/2;
+        const pad = logoSize * 0.18;
+        const plateR = (logoSize/2) + pad;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, plateR, 0, Math.PI*2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, logoSize/2, 0, Math.PI*2);
+        ctx.clip();
+        ctx.drawImage(logoImage, cx - logoSize/2, cy - logoSize/2, logoSize, logoSize);
+        ctx.restore();
+      }
+    }, 60);
+  }
+
+  function render(){
+    const data = buildVCard();
+
+    const logoOn = $('logo-toggle').checked;
+
+    qrTarget.innerHTML = '';
+    qrInstance = new QRCode(qrTarget, {
+      text: data,
+      width: QR_PX,
+      height: QR_PX,
+      colorDark: '#151313',
+      colorLight: '#ffffff',
+      // With a logo covering the center, we need heavy redundancy (H).
+      // With no logo, a lighter level (M) keeps the QR at a lower version,
+      // which means fewer, larger squares — easier to scan when printed small.
+      correctLevel: logoOn ? QRCode.CorrectLevel.H : QRCode.CorrectLevel.M
+    });
+
+    $('preview-name').textContent = $('fname').value.trim() || 'Full Name';
+    $('preview-org').textContent = $('forg').value.trim();
+    $('meta-phone').innerHTML = $('fphone').value.trim() ? ('TEL &nbsp; <span>'+$('fphone').value.trim()+'</span>') : '';
+    $('meta-email').innerHTML = $('femail').value.trim() ? ('MAIL &nbsp; <span>'+$('femail').value.trim()+'</span>') : '';
+    $('meta-url').innerHTML = $('furl').value.trim() ? ('WEB &nbsp; <span>'+$('furl').value.trim()+'</span>') : '';
+
+    drawFinal();
+  }
+
+  fields.forEach(id => $(id).addEventListener('input', render));
+
+  $('logo-toggle').addEventListener('change', () => {
+    const on = $('logo-toggle').checked;
+    $('logo-controls').className = on ? 'logo-controls-visible' : 'logo-controls-hidden';
+    render();
+  });
+
+  $('flogo').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        logoImage = img;
+        const swatch = $('logo-swatch');
+        swatch.innerHTML = '';
+        const previewImg = document.createElement('img');
+        previewImg.src = ev.target.result;
+        swatch.appendChild(previewImg);
+        $('logo-clear-btn').style.display = 'inline-block';
+        render();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  $('logo-clear-btn').addEventListener('click', () => {
+    logoImage = null;
+    $('flogo').value = '';
+    $('logo-swatch').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>';
+    $('logo-clear-btn').style.display = 'none';
+    render();
+  });
+
+  $('fsize').addEventListener('input', () => {
+    $('fsize-val').textContent = $('fsize').value + '%';
+    drawFinal();
+  });
+
+  $('download-btn').addEventListener('click', () => {
+    const link = document.createElement('a');
+    const name = ($('fname').value.trim() || 'contact').replace(/\s+/g, '-').toLowerCase();
+    link.download = `${name}-vcard-qr.png`;
+    link.href = finalCanvas.toDataURL('image/png');
+    link.click();
+  });
+
+  $('download-svg-btn').addEventListener('click', () => {
+    const data = buildVCard();
+    const blob = new Blob([data], { type: 'text/vcard' });
+    const url = URL.createObjectURL(blob);
+    const name = ($('fname').value.trim() || 'contact').replace(/\s+/g, '-').toLowerCase();
+    const link = document.createElement('a');
+    link.download = `${name}.vcf`;
+    link.href = url;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
